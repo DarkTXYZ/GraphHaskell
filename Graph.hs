@@ -28,9 +28,14 @@ instance Show a => Show (Edge a) where
 instance Eq a => Eq (Edge a) where
     m == n = (getU m == getU n && getV m == getV n) || (getU m == getV n && getV m == getU n)
 
+-- instance Show a => Show (AdjGraph a) where
+--     show g = show 
+
 -- Graph
 -- Vertex and edge list representation
 type Graph a = ([Vertex a] , [Edge a])
+-- Vertex and it's adjacent vertex
+type AdjGraph a = [(Vertex a ,[Vertex a])]
 
 -- Graph Construction
 
@@ -57,11 +62,46 @@ addEdge graph edge = (fst graph , edge : snd graph)
 addEdges :: Graph a -> [Edge a] -> Graph a
 addEdges = foldl addEdge
 
+removeVertex ::Eq a => Graph a -> Vertex a -> Graph a 
+removeVertex graph v = (filter (\x -> x /= v) (gv graph) ,(ge (removeEdgebyVertex graph v) ))
+
+removeEdge::Eq a => Graph a -> Edge a -> Graph a
+removeEdge graph edge = fmap (filter (\x->x  /= edge)) graph
+
+removeEdgebyVertex :: Eq a => Graph a -> Vertex a -> Graph a
+removeEdgebyVertex graph v = fmap (filter (\edge -> not (getU edge == v|| getV edge == v))) graph
+
+allAdj ::Eq a => [Edge a] -> Vertex a -> [Vertex a]
+allAdj l v  = aux l []
+    where
+        aux [] res = res
+        aux (l:ls) res 
+         |(getU l) == v = aux ls ((getV l):res)
+         |(getV l) == v = aux ls ((getU l):res)
+         |otherwise = aux ls res
+        
+
+--adjacency Representation
+adjRep ::Eq a => Graph a -> AdjGraph a
+adjRep graph  = [(u,allAdj (ge graph) u)| u <- (gv graph)]
+-- adjRep graph = 
+--     [(u,[v]) | u <- (gv graph), 
+--     v <- foldl (\acc edge -> if (getU edge == u|| getV edge == u) 
+--         then if (getU edge) == u 
+--                 then (getV edge):acc 
+--                 else (getU edge):acc 
+--               else acc ) (ge graph) ] 
+
+
 gv :: Graph a -> [Vertex a]
 gv = fst
 
 ge :: Graph a -> [Edge a]
 ge = snd
+
+
+dfs :: Graph a -> Vertex a-> [a]
+dfs graph v = 
 
 -- Graph Properties
     -- showAdjacentVertices(Vertex a)
@@ -81,6 +121,10 @@ v9 = Vertex "1xbet" 77769420
 v10 = Vertex "ggwp" 1150
 g :: Graph Int
 g = addVertices ([],[]) [v1,v2,v3,v4,v5,v6,v7,v8,v9,v10]
+gs = addEdge g (Edge v1 v2)
+gss = addEdge gs (Edge v1 v3) 
+
+
 
 -- gsss :: Graph Int
 -- gsss = addEdge gss (Edge v1 v2)
@@ -102,4 +146,3 @@ g = addVertices ([],[]) [v1,v2,v3,v4,v5,v6,v7,v8,v9,v10]
         -- ShortestPath
         -- Topological Sort
 
-    
