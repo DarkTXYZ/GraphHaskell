@@ -56,10 +56,15 @@ addVertex graph u =
 addVertices :: Eq a => Graph a -> [Vertex a] -> Graph a
 addVertices = foldl addVertex
 
-addEdge :: Graph a -> Edge a -> Graph a
-addEdge graph edge = (fst graph , edge : snd graph)
+addEdge ::Eq a => Graph a -> Edge a -> Graph a
+addEdge graph edge = 
+     if containsEdge graph edge
+        then
+            graph
+        else
+            (fst graph , edge : snd graph)
 
-addEdges :: Graph a -> [Edge a] -> Graph a
+addEdges :: Eq a => Graph a -> [Edge a] -> Graph a
 addEdges = foldl addEdge
 
 removeVertex ::Eq a => Graph a -> Vertex a -> Graph a 
@@ -72,7 +77,7 @@ removeEdgebyVertex :: Eq a => Graph a -> Vertex a -> Graph a
 removeEdgebyVertex graph v = fmap (filter (\edge -> not (getU edge == v|| getV edge == v))) graph
 
 allAdj ::Eq a => [Edge a] -> Vertex a -> [Vertex a]
-allAdj l v  = aux l []
+allAdj li v  = aux li []
     where
         aux [] res = res
         aux (l:ls) res 
@@ -81,27 +86,22 @@ allAdj l v  = aux l []
          |otherwise = aux ls res
         
 
---adjacency Representation
+--adjacency-list Representation
 adjRep ::Eq a => Graph a -> AdjGraph a
 adjRep graph  = [(u,allAdj (ge graph) u)| u <- (gv graph)]
--- adjRep graph = 
---     [(u,[v]) | u <- (gv graph), 
---     v <- foldl (\acc edge -> if (getU edge == u|| getV edge == u) 
---         then if (getU edge) == u 
---                 then (getV edge):acc 
---                 else (getU edge):acc 
---               else acc ) (ge graph) ] 
 
 
+--get vertices
 gv :: Graph a -> [Vertex a]
 gv = fst
 
+-- getting edgy
 ge :: Graph a -> [Edge a]
 ge = snd
 
 
-dfs :: Graph a -> Vertex a-> [a]
-dfs graph v = 
+-- dfs :: Graph a -> Vertex a-> [a]
+-- dfs graph v = 
 
 -- Graph Properties
     -- showAdjacentVertices(Vertex a)
@@ -114,15 +114,19 @@ v2 = Vertex "b" 69
 v3 = Vertex "c" 6969
 v4 = Vertex "d" (-69)
 v5 = Vertex "e" 2
-v6 = Vertex "pp" 002
-v7 = Vertex "f" 1
-v8 = Vertex "g" 99
-v9 = Vertex "1xbet" 77769420
-v10 = Vertex "ggwp" 1150
+
+e12 = Edge v1 v2
+e13 = Edge v1 v3
+e21 = Edge v2 v1
+e34 = Edge v3 v4
+e45 = Edge v4 v5
+
+
 g :: Graph Int
-g = addVertices ([],[]) [v1,v2,v3,v4,v5,v6,v7,v8,v9,v10]
-gs = addEdge g (Edge v1 v2)
-gss = addEdge gs (Edge v1 v3) 
+g = addVertices ([],[]) [v1,v2,v3,v4,v5]
+g1 = addEdges g [e12,e13,e21,e34,e45] 
+
+
 
 
 
