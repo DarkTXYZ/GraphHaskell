@@ -1,8 +1,3 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Use first" #-}
-{-# HLINT ignore "Use second" #-}
-
--- Graphs data
 -- Vertex
 data Vertex = Vertex {
     label :: String
@@ -109,12 +104,6 @@ removeEdge graph edge = Graph (vertexList graph) ((filter notRemovedEdge) (edgeL
 -- --                 else (getU edge):acc 
 -- --               else acc ) (edgeList graph) ] 
 
-
-
-
--- -- dfs :: Graph a -> Vertex a-> [a]
--- -- dfs graph v = 
-
 v1 = Vertex "a" 
 v2 = Vertex "b" 
 v3 = Vertex "c" 
@@ -131,28 +120,19 @@ g :: Graph
 g = addVertices (Graph [] []) [v1,v2,v3,v4,v5]
 g1 = addEdges g [e12,e13,e21,e34,e45] 
 
+-- Graph
+    -- Undirected Graph
+        -- Graph Construction
+            -- Add Vertex
+            -- Add Edge
+        -- Display Graph
+        -- Transform to Adjacency List representation
 
--- -- gsss :: Graph Int
--- -- gsss = addEdge gss (Edge v1 v2)
-
--- -- Graph
---     -- Undirected Graph
---         -- Graph Construction
---         -- Display Graph
---         -- Get Vertex , Edges
---         -- Contains Vertex , Edges
-
--- -- To Do List
---     -- Transform graph to adj list !!
---     -- Algorithm in unweighted graph    
---         -- DFS , CC
---     -- Continuation (Weighted , unweighted) ??
---     -- Algorithm 
---         -- MST
---         -- ShortestPath
---         -- Topological Sort
-
-
-
--- -- instance Show a => Show (AdjGraph a) where
--- --     show g = show 
+-- To Do List
+    -- Algorithm in unweighted graph    
+        -- DFS , CC
+    -- Continuation (Weighted , unweighted) ??
+    -- Algorithm 
+        -- MST
+        -- ShortestPath
+        -- Topological Sort
