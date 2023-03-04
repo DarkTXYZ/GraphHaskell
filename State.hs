@@ -68,7 +68,7 @@ instance Show Graph where
                     "Edges : \n" ++
                     showNewLine (edgeList graph)
         where
-            showNewLine ls = concat $ (map ((++ "\n").show) ls)
+            showNewLine ls = concat $ (map (("\t" ++).(++ "\n").show) ls)
 
 -- Adjacency List representation
 type AdjGraph = [(Vertex ,[Vertex])]
@@ -77,30 +77,53 @@ type AdjGraph = [(Vertex ,[Vertex])]
 containsVertex :: Vertex -> State Graph Bool
 containsVertex u = State $ \graph -> (u `elem` vertexList graph , graph)
 
--- containsEdge:: Graph -> Edge -> Bool
--- containsEdge graph u = u `elem` edgeList graph
+containsEdge:: Edge -> State Graph Bool
+containsEdge e = State $ \graph -> (e `elem` edgeList graph , graph) 
 
--- addVertex :: Graph -> Vertex -> Graph
--- addVertex graph u = 
---     if containsVertex graph u 
---         then
---             graph
---         else
---             Graph (u : vertexList graph) (edgeList graph)
+addVertex :: Vertex -> State Graph ()
+addVertex newVertex = State $ \graph -> runState addVertexManip graph 
+    where
+        addVertexManip = do
+            contain <- containsVertex newVertex
+            if not contain
+                then
+                    State $ \graph -> (() , Graph (newVertex : vertexList graph) (edgeList graph))
+                else
+                    State $ \graph -> (() , graph)
 
--- addVertices :: Graph -> [Vertex] -> Graph
--- addVertices = foldl addVertex
+addVertices :: [Vertex] -> State Graph ()
+addVertices [] = State $ \graph -> (() , graph)
+addVertices (v:vs) = State $ \graph -> runState manip graph
+    where 
+        manip = do
+            addVertex v
+            addVertices vs
 
--- addEdge :: Graph -> Edge -> Graph
--- addEdge graph edge = 
---     if containsEdge graph edge
---         then
---             graph
---         else
---             Graph (vertexList graph) (edge : edgeList graph)
+-- (State Graph () -> Vertex -> State Graph ()) -> State Graph () -> [Vertex] -> State Graph ()
+addVerticesFold :: [Vertex] -> State Graph ()
+addVerticesFold vs = State $ \graph -> foldl (\g v -> runState (addVertex v) (snd g)) (() , graph) vs
 
--- addEdges :: Graph -> [Edge] -> Graph
--- addEdges = foldl addEdge
+addEdge :: Edge -> State Graph ()
+addEdge newEdge = State $ \graph -> runState addEdgeManip graph 
+    where
+        addEdgeManip = do
+            contain <- containsEdge newEdge
+            if not contain
+                then
+                    State $ \graph -> (() , Graph (vertexList graph) (newEdge : edgeList graph))
+                else
+                    State $ \graph -> (() , graph)
+
+addEdges :: [Edge] -> State Graph ()
+addEdges [] = State $ \graph -> (() , graph)
+addEdges (e:es) = State $ \graph -> runState manip graph
+    where 
+        manip = do
+            addEdge e
+            addEdges es
+
+addEdgesFold :: [Edge] -> State Graph ()
+addEdgesFold es = State $ \graph -> foldl (\g e -> runState (addEdge e) (snd g)) (() , graph) es
 
 -- removeEdgebyVertex :: Graph -> Vertex -> [Edge]
 -- removeEdgebyVertex graph v = (filter notRemovedEdge) (edgeList graph)
@@ -133,6 +156,8 @@ e45 = Edge v4 v5
 -- g1 = addEdges g [e12,e13,e21,e34,e45] 
 
 graphManip = do
-    containsVertex v1
+    addVertices [v1,v2,v3,v4,v5]
+    addEdges [e12,e13,e34]
 
-a = runState graphManip (Graph [v2,v5] [])
+
+a = runState graphManip (Graph [] [])
