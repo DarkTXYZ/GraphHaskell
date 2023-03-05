@@ -56,22 +56,39 @@ instance Eq Edge where
         (getU m == getU n && getV m == getV n) || 
         (getU m == getV n && getV m == getU n)
 
+type AdjList = [(Vertex ,[Vertex])]
+
 -- Graph
 -- Vertex and Edge List representation
 data Graph = Graph {
     vertexList :: [Vertex] ,
-    edgeList :: [Edge]
+    edgeList :: [Edge] ,
+    adjList :: AdjList
 }
 
 instance Show Graph where 
     show graph =    "\nVertices : " ++ show (vertexList graph) ++ "\n" ++
-                    "Edges : \n" ++
-                    showNewLine (edgeList graph)
+                    "Edges : \n" ++ showNewLine (edgeList graph) ++
+                    "AdjList : \n" ++
+                    (concat $ map (showAdjList) (adjList graph))
         where
             showNewLine ls = concat $ (map (("\t" ++).(++ "\n").show) ls)
+            showAdjList l = "\t" ++ show (fst l) ++ ": " ++ show (snd l) ++ "\n"
 
 -- Adjacency List representation
-type AdjGraph = [(Vertex ,[Vertex])]
+
+allAdj :: [Edge] -> Vertex -> [Vertex]
+allAdj edgeList v  = aux edgeList []
+    where
+        aux [] res = res
+        aux (l:ls) res 
+         |(getU l) == v = aux ls ((getV l):res)
+         |(getV l) == v = aux ls ((getU l):res)
+         |otherwise = aux ls res
+        
+--adjacency Representation
+updateAdjList :: State Graph ()
+updateAdjList  = State $ \graph -> ((), Graph (vertexList graph) (edgeList graph) [(u, allAdj (edgeList graph) u)| u <- (vertexList graph)])
 
 -- Graph Construction
 containsVertex :: Vertex -> State Graph Bool
@@ -87,7 +104,7 @@ addVertex newVertex = State $ \graph -> runState addVertexManip graph
             contain <- containsVertex newVertex
             if not contain
                 then
-                    State $ \graph -> (() , Graph (newVertex : vertexList graph) (edgeList graph))
+                    State $ \graph -> (() , Graph (newVertex : vertexList graph) (edgeList graph) [])
                 else
                     State $ \graph -> (() , graph)
 
@@ -112,7 +129,7 @@ addEdge newEdge = State $ \graph -> runState addEdgeManip graph
             containV <- containsVertex $ getV newEdge
             if not containEdge && containU && containV 
                 then
-                    State $ \graph -> (() , Graph (vertexList graph) (newEdge : edgeList graph))
+                    State $ \graph -> (() , Graph (vertexList graph) (newEdge : edgeList graph) [])
                 else
                     State $ \graph -> (() , graph)
 
@@ -128,10 +145,10 @@ addEdgesFold :: [Edge] -> State Graph ()
 addEdgesFold es = State $ \graph -> foldl (\g e -> runState (addEdge e) (snd g)) (() , graph) es
 
 removeEdge:: Edge -> State Graph ()
-removeEdge edge = State $ \graph -> (() , Graph (vertexList graph) (filter (\x->x  /= edge) (edgeList graph)))
+removeEdge edge = State $ \graph -> (() , Graph (vertexList graph) (filter (\x->x  /= edge) (edgeList graph)) [])
 
 removeVertex :: Vertex -> State Graph () 
-removeVertex vertex = State $ \graph -> (() , Graph (filter (\x -> x /= vertex) (vertexList graph)) (filter (\edge -> not (getU edge == vertex || getV edge == vertex)) (edgeList graph)))
+removeVertex vertex = State $ \graph -> (() , Graph (filter (\x -> x /= vertex) (vertexList graph)) (filter (\edge -> not (getU edge == vertex || getV edge == vertex)) (edgeList graph)) [])
 
 v1 = Vertex "a" 
 v2 = Vertex "b" 
@@ -146,12 +163,19 @@ e21 = Edge v2 v1
 e34 = Edge v3 v4
 e45 = Edge v4 v5
 
+testVertex = [Vertex v | v <- ["1","2","3","4","5","6"]]
+testEdge = [Edge (Vertex u) (Vertex v) | (u,v) <- [
+    ("1","3") ,
+    ("1","4") ,
+    ("2","3") ,
+    ("2","5") ,
+    ("3","6") ,
+    ("5","4") ]]
+
 graphManip :: State Graph ()
 graphManip = do
-    addVertices [v1,v2,v3,v4,v5]
-    addEdges [e12,e13,e34]
-    removeEdge e12
-    addVertex (Vertex "Wowza")
-    addEdge (Edge (Vertex "Wowza") (Vertex "a"))
+    addVertices testVertex
+    addEdges testEdge
+    updateAdjList
 
-a = runState graphManip (Graph [] [])
+a = runState graphManip (Graph [] [] [])

@@ -121,12 +121,12 @@ g = addVertices (Graph [] []) [v1,v2,v3,v4,v5]
 g1 = addEdges g [e12,e13,e21,e34,e45] 
 
 -- Graph
-    -- Undirected Graph
-        -- Graph Construction
-            -- Add Vertex
-            -- Add Edge
-        -- Display Graph
-        -- Transform to Adjacency List representation
+    -- Graph Construction
+        -- Add Vertex
+        -- Add Edge
+    -- Display Graph
+    -- Remove Vertex , Edge
+    -- Transform to Adjacency List representation
 
 -- To Do List
     -- Algorithm in unweighted graph    
