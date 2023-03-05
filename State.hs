@@ -64,7 +64,7 @@ data Graph = Graph {
 }
 
 instance Show Graph where 
-    show graph =    "Vertices : " ++ show (vertexList graph) ++ "\n" ++
+    show graph =    "\nVertices : " ++ show (vertexList graph) ++ "\n" ++
                     "Edges : \n" ++
                     showNewLine (edgeList graph)
         where
@@ -107,8 +107,10 @@ addEdge :: Edge -> State Graph ()
 addEdge newEdge = State $ \graph -> runState addEdgeManip graph 
     where
         addEdgeManip = do
-            contain <- containsEdge newEdge
-            if not contain
+            containEdge <- containsEdge newEdge
+            containU <- containsVertex $ getU newEdge
+            containV <- containsVertex $ getV newEdge
+            if not containEdge && containU && containV 
                 then
                     State $ \graph -> (() , Graph (vertexList graph) (newEdge : edgeList graph))
                 else
@@ -125,25 +127,18 @@ addEdges (e:es) = State $ \graph -> runState manip graph
 addEdgesFold :: [Edge] -> State Graph ()
 addEdgesFold es = State $ \graph -> foldl (\g e -> runState (addEdge e) (snd g)) (() , graph) es
 
--- removeEdgebyVertex :: Graph -> Vertex -> [Edge]
--- removeEdgebyVertex graph v = (filter notRemovedEdge) (edgeList graph)
---     where notRemovedEdge = \edge -> not (getU edge == v || getV edge == v)
+removeEdge:: Edge -> State Graph ()
+removeEdge edge = State $ \graph -> (() , Graph (vertexList graph) (filter (\x->x  /= edge) (edgeList graph)))
 
--- removeVertex :: Graph -> Vertex -> Graph 
--- removeVertex graph v = Graph (filter notRemovedVertex (vertexList graph)) (removeEdgebyVertex graph v)
---     where 
---         notRemovedVertex = \x -> x /= v
-
--- removeEdge:: Graph -> Edge -> Graph
--- removeEdge graph edge = Graph (vertexList graph) ((filter notRemovedEdge) (edgeList graph))
---     where 
---         notRemovedEdge = \x->x  /= edge
+removeVertex :: Vertex -> State Graph () 
+removeVertex vertex = State $ \graph -> (() , Graph (filter (\x -> x /= vertex) (vertexList graph)) (filter (\edge -> not (getU edge == vertex || getV edge == vertex)) (edgeList graph)))
 
 v1 = Vertex "a" 
 v2 = Vertex "b" 
 v3 = Vertex "c" 
 v4 = Vertex "d" 
 v5 = Vertex "e"
+v6 = Vertex "f"
 
 e12 = Edge v1 v2
 e13 = Edge v1 v3
@@ -151,13 +146,12 @@ e21 = Edge v2 v1
 e34 = Edge v3 v4
 e45 = Edge v4 v5
 
--- g :: Graph
--- g = addVertices (Graph [] []) [v1,v2,v3,v4,v5]
--- g1 = addEdges g [e12,e13,e21,e34,e45] 
-
+graphManip :: State Graph ()
 graphManip = do
     addVertices [v1,v2,v3,v4,v5]
     addEdges [e12,e13,e34]
-
+    removeEdge e12
+    addVertex (Vertex "Wowza")
+    addEdge (Edge (Vertex "Wowza") (Vertex "a"))
 
 a = runState graphManip (Graph [] [])
