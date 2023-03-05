@@ -130,7 +130,7 @@ g1 = addEdges g [e12,e13,e21,e34,e45]
 
 -- To Do List
     -- Algorithm in unweighted graph    
-        -- DFS , CC
+        -- DFS , CC , Count Components
     -- Continuation (Weighted , unweighted) ??
     -- Algorithm 
         -- MST

@@ -166,11 +166,11 @@ e45 = Edge v4 v5
 testVertex = [Vertex v | v <- ["1","2","3","4","5","6"]]
 testEdge = [Edge (Vertex u) (Vertex v) | (u,v) <- [
     ("1","3") ,
-    ("1","4") ,
+    ("1","2") ,
     ("2","3") ,
-    ("2","5") ,
-    ("3","6") ,
-    ("5","4") ]]
+    ("4","5") ,
+    ("4","6") ,
+    ("5","6") ]]
 
 graphManip :: State Graph ()
 graphManip = do
