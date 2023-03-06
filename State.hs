@@ -150,6 +150,17 @@ removeEdge edge = State $ \graph -> (() , Graph (vertexList graph) (filter (\x->
 removeVertex :: Vertex -> State Graph () 
 removeVertex vertex = State $ \graph -> (() , Graph (filter (\x -> x /= vertex) (vertexList graph)) (filter (\edge -> not (getU edge == vertex || getV edge == vertex)) (edgeList graph)) [])
 
+dfs :: Vertex -> State Graph [Vertex]
+dfs u = State $ \graph -> (reverse $ dfsTraverse (adjList graph) [] u , graph)
+
+dfsTraverse :: AdjList -> [Vertex] -> Vertex -> [Vertex]
+dfsTraverse adjListGraph visited u
+    | (u `elem` visited) = visited
+    | otherwise =
+        let uAdjList = filter (\p -> (fst p) == u) adjListGraph
+            vs = concat $ map (\pair -> snd pair) uAdjList
+        in foldl (dfsTraverse adjListGraph) (u:visited) vs
+
 v1 = Vertex "a" 
 v2 = Vertex "b" 
 v3 = Vertex "c" 
