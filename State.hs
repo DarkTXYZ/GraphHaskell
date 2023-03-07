@@ -1,3 +1,6 @@
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE BlockArguments #-}
+
 newtype State s a = State {
     runState :: s -> (a , s)
 }
@@ -179,14 +182,19 @@ testEdge = [Edge (Vertex u) (Vertex v) | (u,v) <- [
     ("1","3") ,
     ("1","2") ,
     ("2","3") ,
-    ("4","5") ,
-    ("4","6") ,
-    ("5","6") ]]
+    ("4","5") ]]
 
-graphManip :: State Graph ()
+-- graphManip :: State Graph ()
 graphManip = do
     addVertices testVertex
     addEdges testEdge
     updateAdjList
+    dfs (Vertex "5")
+    -- addVertex v1
 
 a = runState graphManip (Graph [] [] [])
+<<<<<<< Updated upstream
+=======
+
+-- State ใน State
+>>>>>>> Stashed changes
