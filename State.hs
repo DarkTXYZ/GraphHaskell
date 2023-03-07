@@ -1,6 +1,8 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE BlockArguments #-}
 
+import Control.Monad
+
 newtype State s a = State {
     runState :: s -> (a , s)
 }
@@ -70,10 +72,10 @@ data Graph = Graph {
 }
 
 instance Show Graph where 
-    show graph =    "\nVertices : " ++ show (vertexList graph) ++ "\n" ++
-                    "Edges : \n" ++ showNewLine (edgeList graph) ++
+    show graph =    "\nVertices : " ++ show (reverse $ vertexList graph) ++ "\n" ++
+                    "Edges : \n" ++ showNewLine (reverse $ edgeList graph) ++
                     "AdjList : \n" ++
-                    (concat $ map (showAdjList) (adjList graph))
+                    (concat $ map (showAdjList) (reverse $ adjList graph))
         where
             showNewLine ls = concat $ (map (("\t" ++).(++ "\n").show) ls)
             showAdjList l = "\t" ++ show (fst l) ++ ": " ++ show (snd l) ++ "\n"
@@ -91,7 +93,12 @@ allAdj edgeList v  = aux edgeList []
         
 --adjacency Representation
 updateAdjList :: State Graph ()
-updateAdjList  = State $ \graph -> ((), Graph (vertexList graph) (edgeList graph) [(u, allAdj (edgeList graph) u)| u <- (vertexList graph)])
+updateAdjList  = State $ \graph -> ((), 
+    Graph 
+        (vertexList graph) 
+        (edgeList graph) 
+        [(u, allAdj (edgeList graph) u)| u <- (vertexList graph)]
+    )
 
 -- Graph Construction
 containsVertex :: Vertex -> State Graph Bool
@@ -101,9 +108,9 @@ containsEdge:: Edge -> State Graph Bool
 containsEdge e = State $ \graph -> (e `elem` edgeList graph , graph) 
 
 addVertex :: Vertex -> State Graph ()
-addVertex newVertex = State $ \graph -> runState addVertexManip graph 
+addVertex newVertex = State $ \graph -> runState manip graph 
     where
-        addVertexManip = do
+        manip = do
             contain <- containsVertex newVertex
             if not contain
                 then
@@ -123,10 +130,13 @@ addVertices (v:vs) = State $ \graph -> runState manip graph
 addVerticesFold :: [Vertex] -> State Graph ()
 addVerticesFold vs = State $ \graph -> foldl (\g v -> runState (addVertex v) (snd g)) (() , graph) vs
 
+addVerticesFoldM :: [Vertex] -> State Graph ()
+addVerticesFoldM vs = foldM (\_ v -> addVertex v) () vs
+
 addEdge :: Edge -> State Graph ()
-addEdge newEdge = State $ \graph -> runState addEdgeManip graph 
+addEdge newEdge = State $ \graph -> runState manip graph 
     where
-        addEdgeManip = do
+        manip = do
             containEdge <- containsEdge newEdge
             containU <- containsVertex $ getU newEdge
             containV <- containsVertex $ getV newEdge
@@ -146,6 +156,9 @@ addEdges (e:es) = State $ \graph -> runState manip graph
 
 addEdgesFold :: [Edge] -> State Graph ()
 addEdgesFold es = State $ \graph -> foldl (\g e -> runState (addEdge e) (snd g)) (() , graph) es
+
+addEdgesFoldM :: [Edge] -> State Graph ()
+addEdgesFoldM es = foldM (\_ e -> (addEdge e)) () es
 
 removeEdge:: Edge -> State Graph ()
 removeEdge edge = State $ \graph -> (() , Graph (vertexList graph) (filter (\x->x  /= edge) (edgeList graph)) [])
@@ -177,24 +190,20 @@ e21 = Edge v2 v1
 e34 = Edge v3 v4
 e45 = Edge v4 v5
 
-testVertex = [Vertex v | v <- ["1","2","3","4","5","6"]]
+testVertex = [Vertex (show v) | v <- [1,2..6]]
 testEdge = [Edge (Vertex u) (Vertex v) | (u,v) <- [
     ("1","3") ,
     ("1","2") ,
     ("2","3") ,
     ("4","5") ]]
+testEdge2 = [Edge (Vertex $ show u) (Vertex $ show v) | u <- [1,2] , v <- [3,4,5,6]]
 
 -- graphManip :: State Graph ()
 graphManip = do
-    addVertices testVertex
-    addEdges testEdge
+    addVerticesFoldM testVertex
+    addEdgesFoldM testEdge2
     updateAdjList
     dfs (Vertex "5")
     -- addVertex v1
 
 a = runState graphManip (Graph [] [] [])
-<<<<<<< Updated upstream
-=======
-
--- State ใน State
->>>>>>> Stashed changes
