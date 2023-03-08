@@ -1,5 +1,9 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE BlockArguments #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use tuple-section" #-}
+{-# HLINT ignore "Use const" #-}
+{-# HLINT ignore "Use newtype instead of data" #-}
 
 import Control.Monad
 
@@ -34,7 +38,7 @@ get :: State s s
 get = State $ \s -> (s, s)
 
 put :: s -> State s ()
-put s = State $ \_ -> (() , s)
+put s = State $ const ((), s)
 
 -- Vertex
 data Vertex = Vertex {
@@ -42,7 +46,7 @@ data Vertex = Vertex {
 }
 
 instance Show Vertex where
-    show u = label u
+    show = label
 
 instance Eq Vertex where
     u == v = label u == label v
@@ -57,9 +61,9 @@ instance Show Edge where
     show edge = show (getU edge) ++ " <--> " ++ show (getV edge)
 
 instance Eq Edge where
-    m == n = 
-        (getU m == getU n && getV m == getV n) || 
-        (getU m == getV n && getV m == getU n)
+    m == n =
+        getU m == getU n && getV m == getV n ||
+        getU m == getV n && getV m == getU n
 
 type AdjList = [(Vertex ,[Vertex])]
 
@@ -71,13 +75,13 @@ data Graph = Graph {
     adjList :: AdjList
 }
 
-instance Show Graph where 
+instance Show Graph where
     show graph =    "\nVertices : " ++ show (reverse $ vertexList graph) ++ "\n" ++
                     "Edges : \n" ++ showNewLine (reverse $ edgeList graph) ++
                     "AdjList : \n" ++
-                    (concat $ map (showAdjList) (reverse $ adjList graph))
+                    concatMap showAdjList (reverse $ adjList graph)
         where
-            showNewLine ls = concat $ (map (("\t" ++).(++ "\n").show) ls)
+            showNewLine = concatMap (("\t" ++).(++ "\n").show)
             showAdjList l = "\t" ++ show (fst l) ++ ": " ++ show (snd l) ++ "\n"
 
 -- Adjacency List representation
@@ -86,18 +90,18 @@ allAdj :: [Edge] -> Vertex -> [Vertex]
 allAdj edgeList v  = aux edgeList []
     where
         aux [] res = res
-        aux (l:ls) res 
-         |(getU l) == v = aux ls ((getV l):res)
-         |(getV l) == v = aux ls ((getU l):res)
+        aux (l:ls) res
+         |getU l == v = aux ls (getV l:res)
+         |getV l == v = aux ls (getU l:res)
          |otherwise = aux ls res
-        
+
 --adjacency Representation
 updateAdjList :: State Graph ()
-updateAdjList  = State $ \graph -> ((), 
-    Graph 
-        (vertexList graph) 
-        (edgeList graph) 
-        [(u, allAdj (edgeList graph) u)| u <- (vertexList graph)]
+updateAdjList  = State $ \graph -> ((),
+    Graph
+        (vertexList graph)
+        (edgeList graph)
+        [(u, allAdj (edgeList graph) u)| u <- vertexList graph]
     )
 
 -- Graph Construction
@@ -105,10 +109,10 @@ containsVertex :: Vertex -> State Graph Bool
 containsVertex u = State $ \graph -> (u `elem` vertexList graph , graph)
 
 containsEdge:: Edge -> State Graph Bool
-containsEdge e = State $ \graph -> (e `elem` edgeList graph , graph) 
+containsEdge e = State $ \graph -> (e `elem` edgeList graph , graph)
 
 addVertex :: Vertex -> State Graph ()
-addVertex newVertex = State $ \graph -> runState manip graph 
+addVertex newVertex = State $ \graph -> runState manip graph
     where
         manip = do
             contain <- containsVertex newVertex
@@ -121,7 +125,7 @@ addVertex newVertex = State $ \graph -> runState manip graph
 addVertices :: [Vertex] -> State Graph ()
 addVertices [] = State $ \graph -> (() , graph)
 addVertices (v:vs) = State $ \graph -> runState manip graph
-    where 
+    where
         manip = do
             addVertex v
             addVertices vs
@@ -131,16 +135,16 @@ addVerticesFold :: [Vertex] -> State Graph ()
 addVerticesFold vs = State $ \graph -> foldl (\g v -> runState (addVertex v) (snd g)) (() , graph) vs
 
 addVerticesFoldM :: [Vertex] -> State Graph ()
-addVerticesFoldM vs = foldM (\_ v -> addVertex v) () vs
+addVerticesFoldM = foldM (\_ v -> addVertex v) ()
 
 addEdge :: Edge -> State Graph ()
-addEdge newEdge = State $ \graph -> runState manip graph 
+addEdge newEdge = State $ \graph -> runState manip graph
     where
         manip = do
             containEdge <- containsEdge newEdge
             containU <- containsVertex $ getU newEdge
             containV <- containsVertex $ getV newEdge
-            if not containEdge && containU && containV 
+            if not containEdge && containU && containV
                 then
                     State $ \graph -> (() , Graph (vertexList graph) (newEdge : edgeList graph) [])
                 else
@@ -149,7 +153,7 @@ addEdge newEdge = State $ \graph -> runState manip graph
 addEdges :: [Edge] -> State Graph ()
 addEdges [] = State $ \graph -> (() , graph)
 addEdges (e:es) = State $ \graph -> runState manip graph
-    where 
+    where
         manip = do
             addEdge e
             addEdges es
@@ -158,29 +162,45 @@ addEdgesFold :: [Edge] -> State Graph ()
 addEdgesFold es = State $ \graph -> foldl (\g e -> runState (addEdge e) (snd g)) (() , graph) es
 
 addEdgesFoldM :: [Edge] -> State Graph ()
-addEdgesFoldM es = foldM (\_ e -> (addEdge e)) () es
+addEdgesFoldM = foldM (\_ e -> addEdge e) ()
 
 removeEdge:: Edge -> State Graph ()
-removeEdge edge = State $ \graph -> (() , Graph (vertexList graph) (filter (\x->x  /= edge) (edgeList graph)) [])
+removeEdge edge = State $ \graph -> (() , Graph (vertexList graph) (filter (/= edge) (edgeList graph)) [])
 
-removeVertex :: Vertex -> State Graph () 
-removeVertex vertex = State $ \graph -> (() , Graph (filter (\x -> x /= vertex) (vertexList graph)) (filter (\edge -> not (getU edge == vertex || getV edge == vertex)) (edgeList graph)) [])
+removeVertex :: Vertex -> State Graph ()
+removeVertex vertex = State $ \graph -> (() , Graph (filter (/= vertex) (vertexList graph)) (filter (\edge -> not (getU edge == vertex || getV edge == vertex)) (edgeList graph)) [])
 
 dfs :: Vertex -> State Graph [Vertex]
 dfs u = State $ \graph -> (reverse $ dfsTraverse (adjList graph) [] u , graph)
 
 dfsTraverse :: AdjList -> [Vertex] -> Vertex -> [Vertex]
 dfsTraverse adjListGraph visited u
-    | (u `elem` visited) = visited
+    | u `elem` visited = visited
     | otherwise =
-        let uAdjList = filter (\p -> (fst p) == u) adjListGraph
-            vs = concat $ map (\pair -> snd pair) uAdjList
+        let uAdjList = filter (\p -> fst p == u) adjListGraph
+            vs = concatMap snd uAdjList
         in foldl (dfsTraverse adjListGraph) (u:visited) vs
 
-v1 = Vertex "a" 
-v2 = Vertex "b" 
-v3 = Vertex "c" 
-v4 = Vertex "d" 
+countConnectedComponents :: State Graph [[Vertex]]
+countConnectedComponents = State $ \graph -> (countComponents graph , graph)
+
+countComponents :: Graph -> [[Vertex]]
+countComponents g = snd $ foldl (
+    \result vertex ->
+        let visited = fst result
+            components = snd result
+        in
+            if vertex `elem` visited then 
+                result
+            else
+                let component = dfsTraverse (adjList g) [] vertex
+                in
+                    (visited ++ component , component : components)) ([],[]) (vertexList g)
+
+v1 = Vertex "a"
+v2 = Vertex "b"
+v3 = Vertex "c"
+v4 = Vertex "d"
 v5 = Vertex "e"
 v6 = Vertex "f"
 
@@ -190,12 +210,19 @@ e21 = Edge v2 v1
 e34 = Edge v3 v4
 e45 = Edge v4 v5
 
-testVertex = [Vertex (show v) | v <- [1,2..6]]
+testVertex = [Vertex (show v) | v <- [1,2..10]]
 testEdge = [Edge (Vertex u) (Vertex v) | (u,v) <- [
-    ("1","3") ,
     ("1","2") ,
-    ("2","3") ,
-    ("4","5") ]]
+    ("2","5") ,
+    ("2","6") ,
+    ("3","6") ,
+    ("4","7") ,
+    ("5","7") ,
+    ("6","7") ,
+    ("6","8") ,
+    ("6","9") ,
+    ("8","9") ,
+    ("8","10") ]]
 testEdge2 = [Edge (Vertex $ show u) (Vertex $ show v) | u <- [1,2] , v <- [3,4,5,6]]
 
 -- graphManip :: State Graph ()
@@ -203,7 +230,6 @@ graphManip = do
     addVerticesFoldM testVertex
     addEdgesFoldM testEdge2
     updateAdjList
-    dfs (Vertex "5")
-    -- addVertex v1
+    countConnectedComponents
 
 a = runState graphManip (Graph [] [] [])
