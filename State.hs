@@ -38,7 +38,7 @@ get :: State s s
 get = State $ \s -> (s, s)
 
 put :: s -> State s ()
-put s = State $ const ((), s)
+put s = State $ \_ -> ((), s)
 
 -- Vertex
 data Vertex = Vertex {
