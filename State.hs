@@ -181,11 +181,11 @@ dfsTraverse adjListGraph visited u
             vs = concatMap snd uAdjList
         in foldl (dfsTraverse adjListGraph) (u:visited) vs
 
-countConnectedComponents :: State Graph [[Vertex]]
-countConnectedComponents = State $ \graph -> (countComponents graph , graph)
+getConnectedComponents :: State Graph [[Vertex]]
+getConnectedComponents = State $ \graph -> (getComponents graph , graph)
 
-countComponents :: Graph -> [[Vertex]]
-countComponents g = snd $ foldl (
+getComponents :: Graph -> [[Vertex]]
+getComponents g = snd $ foldl (
     \result vertex ->
         let visited = fst result
             components = snd result
@@ -230,6 +230,7 @@ graphManip = do
     addVerticesFoldM testVertex
     addEdgesFoldM testEdge2
     updateAdjList
-    countConnectedComponents
+    -- getConnectedComponents
+    -- dfs (Vertex "1")
 
 a = runState graphManip (Graph [] [] [])
