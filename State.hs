@@ -173,6 +173,17 @@ removeVertex vertex = State $ \graph -> (() , Graph (filter (/= vertex) (vertexL
 dfs :: Vertex -> State Graph [Vertex]
 dfs u = State $ \graph -> (reverse $ dfsTraverse (adjList graph) [] u , graph)
 
+dfs2 :: Vertex -> State Graph [Vertex]
+dfs2 u = State $ \graph -> (reverse $ dfsTraverse (adjList graph) [] u , graph)
+
+-- dfs2 :: Vertex -> Vertex -> AdjList -> [Vertex] -> ([Vertex],Bool)
+-- dfs2 parent self adjList visited 
+--     -- | self `elem` visited = (visited , False)
+--     | otherwise =
+--         let uAdjList = filter (\p -> fst p == u) adjListGraph
+--             vs = concatMap snd uAdjList
+--         in foldl () (u:visited) vs
+
 dfsTraverse :: AdjList -> [Vertex] -> Vertex -> [Vertex]
 dfsTraverse adjListGraph visited u
     | u `elem` visited = visited
@@ -180,6 +191,42 @@ dfsTraverse adjListGraph visited u
         let uAdjList = filter (\p -> fst p == u) adjListGraph
             vs = concatMap snd uAdjList
         in foldl (dfsTraverse adjListGraph) (u:visited) vs
+
+dfsTraverse2 :: AdjList -> [Vertex] -> Vertex -> Vertex -> ([Vertex],Bool)
+dfsTraverse2 adjListGraph visited parent u
+    | u `elem` visited = (visited , False)
+    | otherwise =
+        let uAdjList = filter (\p -> fst p == u) adjListGraph
+            vs = concatMap snd uAdjList
+        in foldl (\acc v ->
+            let current_visited = fst acc
+                current_found = snd acc
+            in
+            if v == parent then
+                (current_visited , current_found)
+            else if v `elem` current_visited then
+                (current_visited , True) 
+            else
+                let (v_visited , v_found) = dfsTraverse2 adjListGraph current_visited u v
+                in (v_visited , current_found || v_found) 
+        ) (u:visited , False) vs
+
+cycleDetection:: State Graph Bool
+cycleDetection = State $ \graph -> (cycleUtil graph , graph)
+
+cycleUtil :: Graph -> Bool
+cycleUtil g = snd $ foldl (
+    \result vertex ->
+        let visited = fst result
+            foundCycle = snd result
+        in
+            if vertex `elem` visited then
+                result
+            else
+                let (component , found) = dfsTraverse2 (adjList g) [] (Vertex "-1") vertex
+                in
+                    (visited ++ component , foundCycle || found)) ([],False) (vertexList g)
+
 
 getConnectedComponents :: State Graph [[Vertex]]
 getConnectedComponents = State $ \graph -> (getComponents graph , graph)
@@ -197,6 +244,9 @@ getComponents g = snd $ foldl (
                 in
                     (visited ++ component , component : components)) ([],[]) (vertexList g)
 
+
+
+
 v1 = Vertex "a"
 v2 = Vertex "b"
 v3 = Vertex "c"
@@ -210,27 +260,25 @@ e21 = Edge v2 v1
 e34 = Edge v3 v4
 e45 = Edge v4 v5
 
-testVertex = [Vertex (show v) | v <- [1,2..10]]
+testVertex = [Vertex (show v) | v <- [1,2..7]]
 testEdge = [Edge (Vertex u) (Vertex v) | (u,v) <- [
     ("1","2") ,
-    ("2","5") ,
-    ("2","6") ,
-    ("3","6") ,
-    ("4","7") ,
-    ("5","7") ,
-    ("6","7") ,
-    ("6","8") ,
-    ("6","9") ,
-    ("8","9") ,
-    ("8","10") ]]
-testEdge2 = [Edge (Vertex $ show u) (Vertex $ show v) | u <- [1,2] , v <- [3,4,5,6]]
+    ("1","3") ,
+    ("4","5") ,
+    ("5","6") ]]
+-- testEdge2 = [Edge (Vertex $ show u) (Vertex $ show v) | u <- [1,2] , v <- [3,4,5,6]]
 
 -- graphManip :: State Graph ()
 graphManip = do
     addVerticesFoldM testVertex
-    addEdgesFoldM testEdge2
+    addEdgesFoldM testEdge
     updateAdjList
     -- getConnectedComponents
     -- dfs (Vertex "1")
+    cycleDetection
 
 a = runState graphManip (Graph [] [] [])
+
+
+
+
