@@ -173,17 +173,6 @@ removeVertex vertex = State $ \graph -> (() , Graph (filter (/= vertex) (vertexL
 dfs :: Vertex -> State Graph [Vertex]
 dfs u = State $ \graph -> (reverse $ dfsTraverse (adjList graph) [] u , graph)
 
-dfs2 :: Vertex -> State Graph [Vertex]
-dfs2 u = State $ \graph -> (reverse $ dfsTraverse (adjList graph) [] u , graph)
-
--- dfs2 :: Vertex -> Vertex -> AdjList -> [Vertex] -> ([Vertex],Bool)
--- dfs2 parent self adjList visited 
---     -- | self `elem` visited = (visited , False)
---     | otherwise =
---         let uAdjList = filter (\p -> fst p == u) adjListGraph
---             vs = concatMap snd uAdjList
---         in foldl () (u:visited) vs
-
 dfsTraverse :: AdjList -> [Vertex] -> Vertex -> [Vertex]
 dfsTraverse adjListGraph visited u
     | u `elem` visited = visited
@@ -191,6 +180,7 @@ dfsTraverse adjListGraph visited u
         let uAdjList = filter (\p -> fst p == u) adjListGraph
             vs = concatMap snd uAdjList
         in foldl (dfsTraverse adjListGraph) (u:visited) vs
+
 
 dfsTraverse2 :: AdjList -> [Vertex] -> Vertex -> Vertex -> ([Vertex],Bool)
 dfsTraverse2 adjListGraph visited parent u
