@@ -1,4 +1,3 @@
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE BlockArguments #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use tuple-section" #-}
@@ -25,11 +24,12 @@ instance Eq Vertex where
 -- Edge
 data Edge = Edge {
     getU :: Vertex ,
-    getV :: Vertex
+    getV :: Vertex ,
+    getW :: Integer
 }
 
 instance Show Edge where
-    show edge = show (getU edge) ++ " <--> " ++ show (getV edge)
+    show edge = show (getU edge) ++ " <-- " ++ show (getW edge) ++ " --> " ++ show (getV edge)
 
 instance Eq Edge where
     m == n =
@@ -166,10 +166,10 @@ dfsTraverse2 adjListGraph visited parent u
             if v == parent then
                 (current_visited , current_found)
             else if v `elem` current_visited then
-                (current_visited , True) 
+                (current_visited , True)
             else
                 let (v_visited , v_found) = dfsTraverse2 adjListGraph current_visited u v
-                in (v_visited , current_found || v_found) 
+                in (v_visited , current_found || v_found)
         ) (u:visited , False) vs
 
 cycleDetection:: State Graph Bool
@@ -198,7 +198,7 @@ getComponents g = snd $ foldl (
         let visited = fst result
             components = snd result
         in
-            if vertex `elem` visited then 
+            if vertex `elem` visited then
                 result
             else
                 let component = dfsTraverse (adjList g) [] vertex

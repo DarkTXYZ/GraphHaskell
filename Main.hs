@@ -2,7 +2,7 @@ import Graph
 import State
 
 testVertex = [Vertex (show v) | v <- [1,2..7]]
-testEdge = [Edge (Vertex u) (Vertex v) | (u,v) <- [
+testEdge = [Edge (Vertex u) (Vertex v) 1 | (u,v) <- [
     ("1","2") ,
     ("1","3") ,
     ("4","5") ,
@@ -15,8 +15,8 @@ graphManip = do
     addVertices testVertex
     addEdges testEdge
     updateAdjList
-    -- getConnectedComponents
+    getConnectedComponents
     -- dfs (Vertex "1")
-    cycleDetection
+    -- cycleDetection
 
 run = runState graphManip (Graph [] [] [])
