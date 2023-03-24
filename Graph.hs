@@ -44,7 +44,7 @@ containsVertex :: Vertex -> Graph -> Bool
 containsVertex u graph = u `elem` vertexList graph
 
 addVertex :: Vertex -> Graph
-addVertex newVertex graph =
+addVertex newVertex graph
     | containsVertex newVertex = Graph (newVertex : vertexList graph) (edgeList graph) (adjList graph)
     | otherwise = graph
 
