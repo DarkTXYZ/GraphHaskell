@@ -31,12 +31,12 @@ updateAdjList = State $
                 [(u, allAdj (edgeList graph) u) | u <- vertexList graph]
         )
 
-allAdj :: [Edge] -> Vertex -> [Vertex]
+allAdj :: [Edge] -> Vertex -> [(Vertex , Int)]
 allAdj edgeList v = aux edgeList []
   where
     aux [] res = res
     aux (l : ls) res
-        | getU l == v = aux ls (getV l : res)
+        | getU l == v = aux ls ((getV l , getW l) : res)
         | otherwise = aux ls res
 
 containsVertex :: Vertex -> State DirectedGraph Bool
