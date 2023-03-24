@@ -74,3 +74,14 @@ getComponents g =
             )
             ([], [])
             (vertexList g)
+
+bfs :: Vertex -> State UndirectedGraph [Vertex]
+bfs u = State $ \(UDG graph) -> (bfsTraverse (adjList graph) [u] [u], UDG graph)
+
+bfsTraverse ::  AdjList -> [Vertex] -> [Vertex] ->  [Vertex]
+bfsTraverse _ visited [] =  visited
+bfsTraverse adjListGraph visited (q:qs) = bfsTraverse adjListGraph (visited ++ notVisitedAdjU) newQ
+ where 
+     adjU = concatMap snd(filter (\p -> fst p == q) adjListGraph)
+     notVisitedAdjU = filter(\x -> x `notElem` visited) adjU
+     newQ = qs ++ notVisitedAdjU

@@ -3,19 +3,26 @@ import State
 import DG
 import UDG
 import UDGAlgo
+import DGAlgo
 
 testVertex = [Vertex (show v) | v <- [1, 2 .. 6]]
 testEdge =
     [ Edge (Vertex u) (Vertex v) 1
     | (u, v) <-
         [ ("1", "2")
-        , ("1", "3")
-        , ("4", "5")
+        , ("1", "4")
+        , ("2", "3")
+        , ("3", "5")
+        , ("4", "2")
+        , ("4", "2")
         , ("4", "6")
-        , ("5", "6")
         ]
     ]
-
+testEdge69 =  [ Edge (Vertex u) (Vertex v) 1
+    | (u, v) <-
+        [ ("1", "2")
+        ]
+    ]
 testCycleEdge =
     [ Edge (Vertex u) (Vertex v) 1
     | (u, v) <-
@@ -31,11 +38,12 @@ testCycleEdge =
 
 directedManip = do
     DG.addVertices testVertex
-    DG.addEdges testCycleEdge
+    DG.addEdges testEdge
     DG.updateAdjList
     -- getConnectedComponents
     -- dfs (Vertex "1")
     -- cycleDetection
+    DGAlgo.bfs (Vertex "1")
 
 run = runState directedManip (DG $ Graph [] [] [])
 
@@ -44,7 +52,7 @@ undirectedManip = do
     UDG.addEdges testEdge
     UDG.updateAdjList
     -- UDGAlgo.getConnectedComponents
-    -- UDGAlgo.dfs (Vertex "5")
-    UDGAlgo.cycleDetection
+    UDGAlgo.bfs (Vertex "1")
+    -- UDGAlgo.cycleDetection
 
 run2 = runState undirectedManip (UDG $ Graph [] [] [])
