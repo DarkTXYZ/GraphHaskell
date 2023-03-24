@@ -5,50 +5,51 @@
 {-# HLINT ignore "Use const" #-}
 {-# HLINT ignore "Use newtype instead of data" #-}
 
-module UndirectedGraph where
+module UDG where
 
 import Control.Monad
 import Graph
 import State
 
-newtype UndirectedEdge = UndirectedEdge Edge
+newtype UndirectedEdge = UDE Edge
 
 instance Show UndirectedEdge where
-    show (UndirectedEdge edge) = show (getU edge) ++ " <--(" ++ show (getW edge) ++ ")--> " ++ show (getV edge)
+    show (UDE edge) = show (getU edge) ++ " <--(" ++ show (getW edge) ++ ")--> " ++ show (getV edge)
 
 instance Eq UndirectedEdge where
-    UndirectedEdge m == UndirectedEdge n =
+    UDE m == UDE n =
         getU m == getU n && getV m == getV n
             || getU m == getV n && getV m == getU n
 
-newtype UndirectedGraph = UndirectedGraph Graph
+newtype UndirectedGraph = UDG Graph
 
 instance Show UndirectedGraph where
-    show (UndirectedGraph graph) =
-        "\nVertices : "
-            ++ show (reverse $ vertexList graph)
-            ++ "\n"
-            ++ "Edges : \n"
-            ++ showNewLine (reverse $ edgeList graph)
-            ++ "AdjList : \n"
-            ++ concatMap showAdjList (reverse $ adjList graph)
-      where
-        showNewLine = concatMap (("\t" ++) . (++ "\n") . show . UndirectedEdge)
-        showAdjList l = "\t" ++ show (fst l) ++ ": " ++ show (snd l) ++ "\n"
+    show (UDG graph) = displayGraph graph UDE
+
 
 updateAdjList :: State UndirectedGraph ()
 updateAdjList = State $
-    \(UndirectedGraph graph) ->
+    \(UDG graph) ->
         ( ()
-        , UndirectedGraph $
+        , UDG $
             Graph
                 (vertexList graph)
                 (edgeList graph)
                 [(u, allAdj (edgeList graph) u) | u <- vertexList graph]
         )
 
+-- Adjacency List representation
+allAdj :: [Edge] -> Vertex -> [Vertex]
+allAdj edgeList v = aux edgeList []
+  where
+    aux [] res = res
+    aux (l : ls) res
+        | getU l == v = aux ls (getV l : res)
+        | getV l == v = aux ls (getU l : res)
+        | otherwise = aux ls res
+
 containsVertex :: Vertex -> State UndirectedGraph Bool
-containsVertex u = State $ \(UndirectedGraph graph) -> (u `elem` vertexList graph, UndirectedGraph graph)
+containsVertex u = State $ \(UDG graph) -> (u `elem` vertexList graph, UDG graph)
 
 addVertex :: Vertex -> State UndirectedGraph ()
 addVertex newVertex = State $ \graph -> runState manip graph
@@ -57,8 +58,8 @@ addVertex newVertex = State $ \graph -> runState manip graph
         contain <- containsVertex newVertex
         if not contain
             then State $
-                \(UndirectedGraph graph) ->
-                    ((), UndirectedGraph $ Graph (newVertex : vertexList graph) (edgeList graph) [])
+                \(UDG graph) ->
+                    ((), UDG $ Graph (newVertex : vertexList graph) (edgeList graph) [])
             else State $ \graph -> ((), graph)
 
 addVertices :: [Vertex] -> State UndirectedGraph ()
@@ -78,9 +79,9 @@ addVerticesFoldM = foldM (\_ v -> addVertex v) ()
 
 removeVertex :: Vertex -> State UndirectedGraph ()
 removeVertex vertex = State $
-    \(UndirectedGraph graph) ->
+    \(UDG graph) ->
         ( ()
-        , UndirectedGraph $
+        , UDG $
             Graph
                 (filter (/= vertex) (vertexList graph))
                 ( filter
@@ -91,7 +92,7 @@ removeVertex vertex = State $
         )
 
 containsEdge :: Edge -> State UndirectedGraph Bool
-containsEdge e = State $ \(UndirectedGraph graph) -> (UndirectedEdge e `elem` map UndirectedEdge (edgeList graph), UndirectedGraph graph)
+containsEdge e = State $ \(UDG graph) -> (UDE e `elem` map UDE (edgeList graph), UDG graph)
 
 addEdge :: Edge -> State UndirectedGraph ()
 addEdge newEdge = State $ \graph -> runState manip graph
@@ -99,7 +100,7 @@ addEdge newEdge = State $ \graph -> runState manip graph
     manip = do
         containEdge <- containsEdge newEdge
         if not containEdge
-            then State $ \(UndirectedGraph graph) -> ((), UndirectedGraph $ Graph (vertexList graph) (newEdge : edgeList graph) [])
+            then State $ \(UDG graph) -> ((), UDG $ Graph (vertexList graph) (newEdge : edgeList graph) [])
             else State $ \graph -> ((), graph)
 
 addEdges :: [Edge] -> State UndirectedGraph ()
@@ -117,4 +118,4 @@ addEdgesFoldM :: [Edge] -> State UndirectedGraph ()
 addEdgesFoldM = foldM (\_ e -> addEdge e) ()
 
 removeEdge :: Edge -> State UndirectedGraph ()
-removeEdge edge = State $ \(UndirectedGraph graph) -> ((), UndirectedGraph $ Graph (vertexList graph) (filter ((/= UndirectedEdge edge) . UndirectedEdge) (edgeList graph)) [])
+removeEdge edge = State $ \(UDG graph) -> ((), UDG $ Graph (vertexList graph) (filter ((/= UDE edge) . UDE) (edgeList graph)) [])

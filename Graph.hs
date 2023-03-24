@@ -27,12 +27,15 @@ data Graph = Graph
     , adjList :: AdjList
     }
 
--- Adjacency List representation
-allAdj :: [Edge] -> Vertex -> [Vertex]
-allAdj edgeList v = aux edgeList []
-  where
-    aux [] res = res
-    aux (l : ls) res
-        | getU l == v = aux ls (getV l : res)
-        | getV l == v = aux ls (getU l : res)
-        | otherwise = aux ls res
+displayGraph :: Show b => Graph -> (Edge -> b) -> [Char]
+displayGraph graph f = 
+            "\nVertices : "
+            ++ show (reverse $ vertexList graph)
+            ++ "\n"
+            ++ "Edges : \n"
+            ++ showNewLine f (reverse $ edgeList graph)
+            ++ "AdjList : \n"
+            ++ concatMap showAdjList (reverse $ adjList graph)
+      where
+        showNewLine f = concatMap (("\t" ++) . (++ "\n") . show . f)
+        showAdjList l = "\t" ++ show (fst l) ++ ": " ++ show (snd l) ++ "\n"

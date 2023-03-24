@@ -1,15 +1,11 @@
-module UndirectedGraphAlgorithm where
+module UDGAlgo where
 
-import Graph (
-    AdjList,
-    Graph (adjList, vertexList),
-    Vertex (Vertex),
- )
-import State (State (State))
-import UndirectedGraph (UndirectedGraph (..))
+import Graph
+import State
+import UDG
 
 dfs :: Vertex -> State UndirectedGraph [Vertex]
-dfs u = State $ \(UndirectedGraph graph) -> (reverse $ dfsTraverse (adjList graph) [] u, UndirectedGraph graph)
+dfs u = State $ \(UDG graph) -> (reverse $ dfsTraverse (adjList graph) [] u, UDG graph)
 
 dfsTraverse :: AdjList -> [Vertex] -> Vertex -> [Vertex]
 dfsTraverse adjListGraph visited u
@@ -42,7 +38,7 @@ dfsTraverse2 adjListGraph visited parent u
                 vs
 
 cycleDetection :: State UndirectedGraph Bool
-cycleDetection = State $ \(UndirectedGraph graph) -> (cycleUtil graph, UndirectedGraph graph)
+cycleDetection = State $ \(UDG graph) -> (cycleUtil graph, UDG graph)
 
 cycleUtil :: Graph -> Bool
 cycleUtil g =
@@ -59,8 +55,9 @@ cycleUtil g =
             )
             ([], False)
             (vertexList g)
+            
 getConnectedComponents :: State UndirectedGraph [[Vertex]]
-getConnectedComponents = State $ \(UndirectedGraph graph) -> (getComponents graph, UndirectedGraph graph)
+getConnectedComponents = State $ \(UDG graph) -> (getComponents graph, UDG graph)
 
 getComponents :: Graph -> [[Vertex]]
 getComponents g =

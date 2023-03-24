@@ -1,48 +1,46 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use tuple-section" #-}
-module DirectedGraph where
+module DG where
 
 import Graph
 import State
 import Control.Monad
 
-newtype DirectedEdge = DirectedEdge Edge
+newtype DirectedEdge = DE Edge
 
 instance Show DirectedEdge where
-    show (DirectedEdge edge) = show (getU edge) ++ " --(" ++ show (getW edge) ++ ")--> " ++ show (getV edge)
+    show (DE edge) = show (getU edge) ++ " --(" ++ show (getW edge) ++ ")--> " ++ show (getV edge)
 
 instance Eq DirectedEdge where
-    DirectedEdge m == DirectedEdge n =
+    DE m == DE n =
         getU m == getU n && getV m == getV n
 
-newtype DirectedGraph = DirectedGraph Graph
+newtype DirectedGraph = DG Graph
 
 instance Show DirectedGraph where
-    show (DirectedGraph graph) =
-        "\nVertices : "
-            ++ show (reverse $ vertexList graph)
-            ++ "\n"
-            ++ "Edges : \n"
-            ++ showNewLine (reverse $ edgeList graph)
-            ++ "AdjList : \n"
-            ++ concatMap showAdjList (reverse $ adjList graph)
-      where
-        showNewLine = concatMap (("\t" ++) . (++ "\n") . show . DirectedEdge)
-        showAdjList l = "\t" ++ show (fst l) ++ ": " ++ show (snd l) ++ "\n"
+    show (DG graph) = displayGraph graph DE
 
 updateAdjList :: State DirectedGraph ()
 updateAdjList = State $
-    \(DirectedGraph graph) ->
+    \(DG graph) ->
         ( ()
-        , DirectedGraph $
+        , DG $
             Graph
                 (vertexList graph)
                 (edgeList graph)
                 [(u, allAdj (edgeList graph) u) | u <- vertexList graph]
         )
 
+allAdj :: [Edge] -> Vertex -> [Vertex]
+allAdj edgeList v = aux edgeList []
+  where
+    aux [] res = res
+    aux (l : ls) res
+        | getU l == v = aux ls (getV l : res)
+        | otherwise = aux ls res
+
 containsVertex :: Vertex -> State DirectedGraph Bool
-containsVertex u = State $ \(DirectedGraph graph) -> (u `elem` vertexList graph, DirectedGraph graph)
+containsVertex u = State $ \(DG graph) -> (u `elem` vertexList graph, DG graph)
 
 addVertex :: Vertex -> State DirectedGraph ()
 addVertex newVertex = State $ \graph -> runState manip graph
@@ -51,8 +49,8 @@ addVertex newVertex = State $ \graph -> runState manip graph
         contain <- containsVertex newVertex
         if not contain
             then State $
-                \(DirectedGraph graph) ->
-                    ((), DirectedGraph $ Graph (newVertex : vertexList graph) (edgeList graph) [])
+                \(DG graph) ->
+                    ((), DG $ Graph (newVertex : vertexList graph) (edgeList graph) [])
             else State $ \graph -> ((), graph)
 
 addVertices :: [Vertex] -> State DirectedGraph ()
@@ -72,9 +70,9 @@ addVerticesFoldM = foldM (\_ v -> addVertex v) ()
 
 removeVertex :: Vertex -> State DirectedGraph ()
 removeVertex vertex = State $
-    \(DirectedGraph graph) ->
+    \(DG graph) ->
         ( ()
-        , DirectedGraph $
+        , DG $
             Graph
                 (filter (/= vertex) (vertexList graph))
                 ( filter
@@ -85,7 +83,7 @@ removeVertex vertex = State $
         )
 
 containsEdge :: Edge -> State DirectedGraph Bool
-containsEdge e = State $ \(DirectedGraph graph) -> (DirectedEdge e `elem` map DirectedEdge (edgeList graph), DirectedGraph graph)
+containsEdge e = State $ \(DG graph) -> (DE e `elem` map DE (edgeList graph), DG graph)
 
 addEdge :: Edge -> State DirectedGraph ()
 addEdge newEdge = State $ \graph -> runState manip graph
@@ -93,7 +91,7 @@ addEdge newEdge = State $ \graph -> runState manip graph
     manip = do
         containEdge <- containsEdge newEdge
         if not containEdge
-            then State $ \(DirectedGraph graph) -> ((), DirectedGraph $ Graph (vertexList graph) (newEdge : edgeList graph) [])
+            then State $ \(DG graph) -> ((), DG $ Graph (vertexList graph) (newEdge : edgeList graph) [])
             else State $ \graph -> ((), graph)
 
 addEdges :: [Edge] -> State DirectedGraph ()
@@ -111,4 +109,4 @@ addEdgesFoldM :: [Edge] -> State DirectedGraph ()
 addEdgesFoldM = foldM (\_ e -> addEdge e) ()
 
 removeEdge :: Edge -> State DirectedGraph ()
-removeEdge edge = State $ \(DirectedGraph graph) -> ((), DirectedGraph $ Graph (vertexList graph) (filter ((/= DirectedEdge edge) . DirectedEdge) (edgeList graph)) [])
+removeEdge edge = State $ \(DG graph) -> ((), DG $ Graph (vertexList graph) (filter ((/= DE edge) . DE) (edgeList graph)) [])
