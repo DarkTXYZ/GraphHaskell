@@ -28,7 +28,7 @@ updateAdjList = State $
             Graph
                 (vertexList graph)
                 (edgeList graph)
-                [(u, map fst $ allAdj (edgeList graph) u) | u <- vertexList graph]
+                [(u, allAdj (edgeList graph) u) | u <- vertexList graph]
         )
 
 allAdj :: [Edge] -> Vertex -> [(Vertex , Integer)]

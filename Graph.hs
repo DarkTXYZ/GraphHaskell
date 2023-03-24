@@ -19,7 +19,7 @@ data Edge = Edge
     , getW :: Integer
     } deriving Show
 
-type AdjList = [(Vertex, [Vertex])]
+type AdjList = [(Vertex, [(Vertex , Integer)])]
 
 data Graph = Graph
     { vertexList :: [Vertex]
@@ -28,12 +28,12 @@ data Graph = Graph
     } deriving Show
 
 displayGraph :: Show b => Graph -> (Edge -> b) -> [Char]
-displayGraph graph f = 
+displayGraph graph edgeType = 
             "\nVertices : "
             ++ show (reverse $ vertexList graph)
             ++ "\n"
             ++ "Edges : \n"
-            ++ showNewLine f (reverse $ edgeList graph)
+            ++ showNewLine edgeType (reverse $ edgeList graph)
             ++ "AdjList : \n"
             ++ concatMap showAdjList (reverse $ adjList graph)
       where

@@ -12,7 +12,7 @@ dfsTraverse adjListGraph visited u
     | u `elem` visited = visited
     | otherwise =
         let uAdjList = filter (\p -> fst p == u) adjListGraph
-            vs = concatMap snd uAdjList
+            vs = map fst $ concatMap snd uAdjList
          in foldl (dfsTraverse adjListGraph) (u : visited) vs
 
 dfsTraverse2 :: AdjList -> [Vertex] -> Vertex -> Vertex -> ([Vertex], Bool)
@@ -20,7 +20,7 @@ dfsTraverse2 adjListGraph visited parent u
     | u `elem` visited = (visited, False)
     | otherwise =
         let uAdjList = filter (\p -> fst p == u) adjListGraph
-            vs = concatMap snd uAdjList
+            vs = map fst $ concatMap snd uAdjList
          in foldl
                 ( \acc v ->
                     let current_visited = fst acc
@@ -81,7 +81,7 @@ bfs u = State $ \(UDG graph) -> (bfsTraverse (adjList graph) [u] [u], UDG graph)
 bfsTraverse ::  AdjList -> [Vertex] -> [Vertex] ->  [Vertex]
 bfsTraverse _ visited [] =  visited
 bfsTraverse adjListGraph visited (q:qs) = bfsTraverse adjListGraph (visited ++ notVisitedAdjU) newQ
- where 
-     adjU = concatMap snd(filter (\p -> fst p == q) adjListGraph)
-     notVisitedAdjU = filter(\x -> x `notElem` visited) adjU
-     newQ = qs ++ notVisitedAdjU
+    where 
+        adjU = concatMap snd (filter (\p -> fst p == q) adjListGraph)
+        notVisitedAdjU = map fst $ filter(\x -> fst x `notElem` visited) adjU
+        newQ = qs ++ notVisitedAdjU

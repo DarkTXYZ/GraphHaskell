@@ -40,7 +40,7 @@ cycleTraverse adjList visited stack u =
         
         ) (u : visited , False) adjU
     where
-        adjU = concatMap snd(filter (\p -> fst p == u) adjList)
+        adjU = map fst $ concatMap snd(filter (\p -> fst p == u) adjList)
 
 bfs :: Vertex -> State DirectedGraph [Vertex]
 bfs u = State $ \(DG graph) -> (bfsTraverse (adjList graph) [u] [u], DG graph)
@@ -48,17 +48,38 @@ bfs u = State $ \(DG graph) -> (bfsTraverse (adjList graph) [u] [u], DG graph)
 bfsTraverse ::  AdjList -> [Vertex] -> [Vertex] ->  [Vertex]
 bfsTraverse _ visited [] =  visited
 bfsTraverse adjListGraph visited (q:qs) = bfsTraverse adjListGraph (visited ++ notVisitedAdjU) newQ
- where 
-     adjU = concatMap snd(filter (\p -> fst p == q) adjListGraph)
-     notVisitedAdjU = filter(\x -> x `notElem` visited) adjU
-     newQ = qs ++ notVisitedAdjU
+    where 
+        adjU = concatMap snd (filter (\p -> fst p == q) adjListGraph)
+        notVisitedAdjU = map fst $ filter(\x -> fst x `notElem` visited) adjU
+        newQ = qs ++ notVisitedAdjU
 
--- allInfinite:: Vertex -> [(Vertex,Int)]
--- allInfinite s = [(u, if(u == s) then 0 else 1000000)|  u <- vertexList graph ]
-
+allInfinite:: Vertex -> Graph -> [(Vertex,Integer)]
+allInfinite src graph = [(u, if(u == src) then 0 else 1000000)|  u <- vertexList graph ]
 
 -- spt allinfinte, vertexList -> [vertex,(prev,distance if from prev)]
--- spt::[(Vertex,Int)] -> [Vertex] -> [(Vertex,(Vertex,Int))]
+
+spt :: AdjList -> [(Vertex,Integer)] -> [(Vertex,Integer)] -> [(Vertex,Integer)] 
+spt _ dist [] =  dist
+spt adjListGraph dist (q:qs) = spt adjListGraph newDist newQ
+    where 
+        u = fst q
+        vs = concatMap snd (filter (\p -> fst p == u) adjListGraph)
+        (newDist, newQ) = foldl (\(cur_dist , cur_q) (vv , w) -> 
+            let 
+                dist_u = snd $ head $ filter ((== u).fst) dist
+                dist_vv = snd $ head $ filter ((== vv).fst) dist
+            in
+                if (dist_vv > dist_u + w) then
+                    (updateDist cur_dist vv (dist_u + w) , cur_q ++ [(vv , dist_u + w)])
+                else
+                    (cur_dist , cur_q)
+            ) (dist , qs) vs
+
+shortestPath :: Vertex -> State DirectedGraph [(Vertex , Integer)]
+shortestPath u = State $ \(DG graph) -> (spt (adjList graph) (allInfinite u graph) [(u , 0)], DG graph)
+
+updateDist :: [(Vertex , Integer)] -> Vertex -> Integer -> [(Vertex , Integer)]
+updateDist dist v w = map (\(vertex , d) -> if (vertex == v) then (v , w) else (vertex , d)) dist
 
 topoSort :: State DirectedGraph [Vertex]
 topoSort = State $ \(DG graph) -> (topoSortUtil graph, DG graph)
@@ -72,4 +93,3 @@ topoSortUtil graph = reverse $ aux [] graph
          noIncomingEdge x = foldl(\acc e -> acc && getV e /= x) True (edgeList graph) 
          removedVertex = head $ filter(\v -> noIncomingEdge v) (vertexList graph)
          newGraph = Graph.removeVertex removedVertex graph
-

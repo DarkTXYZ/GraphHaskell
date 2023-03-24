@@ -57,6 +57,22 @@ testCycleEdge = [ Edge (Vertex u) (Vertex v) 1
         ]
     ]
 
+testStpEdge =
+    [ Edge (Vertex u) (Vertex v) (w)
+    | (u, v, w) <-
+        [ ("1", "2" , 3)
+        , ("1", "4" , 6)
+        , ("2", "4" , 1)
+        , ("2", "3" , 10)
+        , ("3", "5" , 9)
+        , ("4", "2" , 5)
+        , ("4", "3" , 8)
+        , ("4", "5" , 4)
+        , ("5", "3" , 2)
+        -- , ("3" , "4")
+        ]
+    ]
+
 -- testEdge2 = [Edge (Vertex $ show u) (Vertex $ show v) | u <- [1,2] , v <- [3,4,5,6]]
 
 directedManip = do
@@ -64,6 +80,7 @@ directedManip = do
     DG.addEdges testTopo
     DG.updateAdjList
     DGAlgo.topoSort
+    -- DGAlgo.shortestPath (Vertex "1") 
     -- getConnectedComponents
     -- dfs (Vertex "1")
     -- DGAlgo.cycleDetection

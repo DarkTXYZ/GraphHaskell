@@ -39,13 +39,13 @@ updateAdjList = State $
         )
 
 -- Adjacency List representation
-allAdj :: [Edge] -> Vertex -> [Vertex]
+allAdj :: [Edge] -> Vertex -> [(Vertex , Integer)]
 allAdj edgeList v = aux edgeList []
   where
     aux [] res = res
     aux (l : ls) res
-        | getU l == v = aux ls (getV l : res)
-        | getV l == v = aux ls (getU l : res)
+        | getU l == v = aux ls ((getV l , getW l): res)
+        | getV l == v = aux ls ((getU l , getW l): res)
         | otherwise = aux ls res
 
 containsVertex :: Vertex -> State UndirectedGraph Bool
