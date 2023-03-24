@@ -14,17 +14,24 @@ testEdge =
         , ("2", "3")
         , ("3", "5")
         , ("4", "2")
-        , ("4", "2")
         , ("4", "6")
+        -- , ("3" , "4")
         ]
     ]
 testEdge69 =  [ Edge (Vertex u) (Vertex v) 1
     | (u, v) <-
         [ ("1", "2")
+        , ("2", "3")
+        , ("3", "4")
+        -- , ("4", "1")
         ]
     ]
-testCycleEdge =
-    [ Edge (Vertex u) (Vertex v) 1
+
+testEdge6969 =  [ Edge (Vertex u) (Vertex v) 1
+    | (u, v) <-
+        [ ("1", "2") , ("2" , "3") , ("3" ,"3")]]
+
+testCycleEdge = [ Edge (Vertex u) (Vertex v) 1
     | (u, v) <-
         [ ("1", "2")
         , ("1", "3")
@@ -38,12 +45,12 @@ testCycleEdge =
 
 directedManip = do
     DG.addVertices testVertex
-    DG.addEdges testEdge
+    DG.addEdges testEdge6969
     DG.updateAdjList
     -- getConnectedComponents
     -- dfs (Vertex "1")
-    -- cycleDetection
-    DGAlgo.bfs (Vertex "1")
+    DGAlgo.cycleDetection
+    -- DGAlgo.bfs (Vertex "1")
 
 run = runState directedManip (DG $ Graph [] [] [])
 
