@@ -3,6 +3,7 @@ module UDGAlgo where
 import Graph
 import State
 import UDG
+import Data.List
 
 dfs :: Vertex -> State UndirectedGraph [Vertex]
 dfs u = State $ \(UDG graph) -> (reverse $ dfsTraverse (adjList graph) [] u, UDG graph)
@@ -85,3 +86,19 @@ bfsTraverse adjListGraph visited (q:qs) = bfsTraverse adjListGraph (visited ++ n
         adjU = concatMap snd (filter (\p -> fst p == q) adjListGraph)
         notVisitedAdjU = map fst $ filter(\x -> fst x `notElem` visited) adjU
         newQ = qs ++ notVisitedAdjU
+
+ms :: State UndirectedGraph UndirectedGraph
+ms = State $ \(UDG graph) -> (mstUtil graph , UDG graph)
+
+mstUtil :: Graph -> UndirectedGraph
+mstUtil graph = UDG $ foldl (
+    \acc e -> 
+        if (UDGAlgo.cycleUtil) $ (UDG.updateAdj) $ (UDG $ (Graph.addEdge e acc UDE) )
+            then acc
+            else (UDG.updateAdj) $ (UDG $ (Graph.addEdge e acc UDE) ) )
+        newGraph 
+        (sortEdgeList)
+ where
+     newGraph = Graph (vertexList graph) [] []
+     sortEdgeList = sortBy compare (edgeList graph)
+     compare e1 e2 | getW e1 < getW e2 = LT | getW e1 == getW e2 = EQ | getW e1 > getW e2 = GT

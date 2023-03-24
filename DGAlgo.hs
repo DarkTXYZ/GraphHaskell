@@ -3,6 +3,7 @@ module DGAlgo where
 import DG
 import Graph
 import State
+import Data.List
 
 -- adjlist,visited,q->[order]
 
@@ -93,3 +94,22 @@ topoSortUtil graph = reverse $ aux [] graph
          noIncomingEdge x = foldl(\acc e -> acc && getV e /= x) True (edgeList graph) 
          removedVertex = head $ filter(\v -> noIncomingEdge v) (vertexList graph)
          newGraph = Graph.removeVertex removedVertex graph
+
+
+ms :: State DirectedGraph DirectedGraph
+ms = State $ \(DG graph) -> (mstUtil graph , DG graph)
+
+mstUtil :: Graph -> DirectedGraph
+mstUtil graph = DG $ foldl (
+    \acc e -> 
+        if DGAlgo.cycleUtil (Graph.addEdge e acc DE) 
+            then acc
+            else (Graph.addEdge e acc DE) ) 
+        newGraph 
+        (sortEdgeList)
+ where
+     newGraph = Graph (vertexList graph) [] []
+     sortEdgeList = sortBy compare (edgeList graph)
+     compare e1 e2 | getW e1 < getW e2 = LT | getW e1 == getW e2 = EQ | getW e1 > getW e2 = GT
+
+-- sortEdgeList (Graph [] [Edge (Vertex "1") (Vertex "2") (3) , Edge (Vertex "18") (Vertex "24") (1) , Edge (Vertex "112") (Vertex "1231232") (69)] [])

@@ -15,6 +15,9 @@ instance Eq DirectedEdge where
     DE m == DE n =
         getU m == getU n && getV m == getV n
 
+instance Ord DirectedEdge where
+    DE m <= DE n = getW m <= getW n
+
 newtype DirectedGraph = DG Graph
 
 instance Show DirectedGraph where

@@ -38,6 +38,13 @@ updateAdjList = State $
                 [(u, allAdj (edgeList graph) u) | u <- vertexList graph]
         )
 
+updateAdj :: UndirectedGraph -> Graph
+updateAdj (UDG graph) =
+            Graph
+                (vertexList graph)
+                (edgeList graph)
+                [(u, allAdj (edgeList graph) u) | u <- vertexList graph]
+
 -- Adjacency List representation
 allAdj :: [Edge] -> Vertex -> [(Vertex , Integer)]
 allAdj edgeList v = aux edgeList []

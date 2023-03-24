@@ -73,25 +73,44 @@ testStpEdge =
         ]
     ]
 
+testMstEdge =
+    [ Edge (Vertex u) (Vertex v) (w)
+    | (u, v, w) <-
+        [ ("1", "2" , 9)
+        , ("1", "6" , 8)
+        , ("2", "6" , 2)
+        , ("2", "3" , 6)
+        , ("3", "4" , 3)
+        , ("3", "7" , 11)
+        , ("4", "5" , 10)
+        , ("5", "7" , 4)
+        , ("5", "6" , 1)
+        , ("6", "7" , 7)
+        ]
+    ]
+
+
 -- testEdge2 = [Edge (Vertex $ show u) (Vertex $ show v) | u <- [1,2] , v <- [3,4,5,6]]
 
 directedManip = do
     DG.addVertices testVertex
     DG.addEdges testTopo
     DG.updateAdjList
-    DGAlgo.topoSort
+    -- DGAlgo.ms
+    -- DGAlgo.topoSort
     -- DGAlgo.shortestPath (Vertex "1") 
     -- getConnectedComponents
     -- dfs (Vertex "1")
-    -- DGAlgo.cycleDetection
+    DGAlgo.cycleDetection
     -- DGAlgo.bfs (Vertex "1")
 
 run = runState directedManip (DG $ Graph [] [] [])
 
 undirectedManip = do
     UDG.addVertices testVertex
-    UDG.addEdges testEdge
+    UDG.addEdges testMstEdge
     UDG.updateAdjList
+    UDGAlgo.ms
     -- UDGAlgo.getConnectedComponents
     -- UDGAlgo.bfs (Vertex "1")
     -- UDGAlgo.cycleDetection
