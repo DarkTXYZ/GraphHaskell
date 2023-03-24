@@ -53,9 +53,23 @@ bfsTraverse adjListGraph visited (q:qs) = bfsTraverse adjListGraph (visited ++ n
      notVisitedAdjU = filter(\x -> x `notElem` visited) adjU
      newQ = qs ++ notVisitedAdjU
 
-allInfinite:: Vertex -> [(Vertex,Int)]
-allInfinite s = [(u, if(u == s) then 0 else 1000000)|  u <- vertexList graph ]
+-- allInfinite:: Vertex -> [(Vertex,Int)]
+-- allInfinite s = [(u, if(u == s) then 0 else 1000000)|  u <- vertexList graph ]
 
 
 -- spt allinfinte, vertexList -> [vertex,(prev,distance if from prev)]
-spt::[(Vertex,Int)] -> [Vertex] -> [(Vertex,(Vertex,Int))]
+-- spt::[(Vertex,Int)] -> [Vertex] -> [(Vertex,(Vertex,Int))]
+
+topoSort :: State DirectedGraph [Vertex]
+topoSort = State $ \(DG graph) -> (topoSortUtil graph, DG graph)
+
+topoSortUtil::Graph -> [Vertex]
+topoSortUtil graph = reverse $ aux [] graph
+ where 
+     aux res (Graph [] _ _) = res
+     aux res graph = aux (removedVertex:res) newGraph
+      where
+         noIncomingEdge x = foldl(\acc e -> acc && getV e /= x) True (edgeList graph) 
+         removedVertex = head $ filter(\v -> noIncomingEdge v) (vertexList graph)
+         newGraph = Graph.removeVertex removedVertex graph
+

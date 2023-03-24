@@ -5,7 +5,23 @@ import UDG
 import UDGAlgo
 import DGAlgo
 
-testVertex = [Vertex (show v) | v <- [1, 2 .. 6]]
+testVertex = [Vertex (show v) | v <- [1, 2 .. 7]]
+testTopo = [ Edge (Vertex u) (Vertex v) 1
+    | (u, v) <-
+        [ ("1", "2")
+        , ("1", "6")
+        , ("1", "7")
+        , ("2", "3")
+        , ("2", "7")
+        , ("3", "7")
+        , ("4", "3")
+        , ("4", "5")
+        , ("4", "7")
+        , ("6", "5")
+        , ("7", "6")
+        ]
+    ]
+
 testEdge =
     [ Edge (Vertex u) (Vertex v) 1
     | (u, v) <-
@@ -45,11 +61,12 @@ testCycleEdge = [ Edge (Vertex u) (Vertex v) 1
 
 directedManip = do
     DG.addVertices testVertex
-    DG.addEdges testEdge6969
+    DG.addEdges testTopo
     DG.updateAdjList
+    DGAlgo.topoSort
     -- getConnectedComponents
     -- dfs (Vertex "1")
-    DGAlgo.cycleDetection
+    -- DGAlgo.cycleDetection
     -- DGAlgo.bfs (Vertex "1")
 
 run = runState directedManip (DG $ Graph [] [] [])
