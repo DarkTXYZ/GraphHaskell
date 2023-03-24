@@ -49,73 +49,31 @@ allAdj edgeList v = aux edgeList []
         | otherwise = aux ls res
 
 containsVertex :: Vertex -> State UndirectedGraph Bool
-containsVertex u = State $ \(UDG graph) -> (u `elem` vertexList graph, UDG graph)
+containsVertex u = State $ \(UDG graph) -> (Graph.containsVertex u graph, UDG graph)
 
 addVertex :: Vertex -> State UndirectedGraph ()
-addVertex newVertex = State $ \graph -> runState manip graph
-  where
-    manip = do
-        contain <- containsVertex newVertex
-        if not contain
-            then State $
-                \(UDG graph) ->
-                    ((), UDG $ Graph (newVertex : vertexList graph) (edgeList graph) [])
-            else State $ \graph -> ((), graph)
+addVertex newVertex = State $ \(UDG graph) -> (() , UDG $ Graph.addVertex newVertex graph)
 
 addVertices :: [Vertex] -> State UndirectedGraph ()
-addVertices [] = State $ \graph -> ((), graph)
-addVertices (v : vs) = State $ \graph -> runState manip graph
-  where
-    manip = do
-        addVertex v
-        addVertices vs
-
-addVerticesFold :: [Vertex] -> State UndirectedGraph ()
-addVerticesFold vs = State $
-    \graph -> foldl (\g v -> runState (addVertex v) (snd g)) ((), graph) vs
-
-addVerticesFoldM :: [Vertex] -> State UndirectedGraph ()
-addVerticesFoldM = foldM (\_ v -> addVertex v) ()
+addVertices vs = State $ \(UDG graph) -> (() , UDG $ Graph.addVertices vs graph)
 
 removeVertex :: Vertex -> State UndirectedGraph ()
-removeVertex vertex = State $
-    \(UDG graph) ->
-        ( ()
-        , UDG $
-            Graph
-                (filter (/= vertex) (vertexList graph))
-                ( filter
-                    (\edge -> not (getU edge == vertex || getV edge == vertex))
-                    (edgeList graph)
-                )
-                []
-        )
+removeVertex vertex = State $ \(UDG graph) -> (() , UDG $ Graph.removeVertex vertex graph)
 
 containsEdge :: Edge -> State UndirectedGraph Bool
-containsEdge e = State $ \(UDG graph) -> (UDE e `elem` map UDE (edgeList graph), UDG graph)
+containsEdge e = State $ \(UDG graph) -> (Graph.containsEdge e graph UDE, UDG graph)
 
 addEdge :: Edge -> State UndirectedGraph ()
-addEdge newEdge = State $ \graph -> runState manip graph
-  where
-    manip = do
-        containEdge <- containsEdge newEdge
-        if not containEdge
-            then State $ \(UDG graph) -> ((), UDG $ Graph (vertexList graph) (newEdge : edgeList graph) [])
-            else State $ \graph -> ((), graph)
+addEdge newEdge = State $ \(UDG graph) -> (() , UDG $ Graph.addEdge newEdge graph UDE)
 
 addEdges :: [Edge] -> State UndirectedGraph ()
-addEdges [] = State $ \graph -> ((), graph)
-addEdges (e : es) = State $ \graph -> runState manip graph
-  where
-    manip = do
-        addEdge e
-        addEdges es
+addEdges es = State $ \(UDG graph) -> ((), UDG $ Graph.addEdges es graph UDE)
 
-addEdgesFold :: [Edge] -> State UndirectedGraph ()
-addEdgesFold es = State $ \graph -> foldl (\g e -> runState (addEdge e) (snd g)) ((), graph) es
+-- addEdgesFold :: [Edge] -> State UndirectedGraph ()
+-- addEdgesFold es = State $ \graph -> foldl (\g e -> runState (addEdge e) (snd g)) ((), graph) es
 
-addEdgesFoldM :: [Edge] -> State UndirectedGraph ()
-addEdgesFoldM = foldM (\_ e -> addEdge e) ()
+-- addEdgesFoldM :: [Edge] -> State UndirectedGraph ()
+-- addEdgesFoldM = foldM (\_ e -> addEdge e) ()
 
 removeEdge :: Edge -> State UndirectedGraph ()
-removeEdge edge = State $ \(UDG graph) -> ((), UDG $ Graph (vertexList graph) (filter ((/= UDE edge) . UDE) (edgeList graph)) [])
+removeEdge edge = State $ \(UDG graph) -> ((), UDG $ Graph.removeEdge edge graph UDE)

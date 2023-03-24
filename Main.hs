@@ -29,7 +29,7 @@ testEdge69 =  [ Edge (Vertex u) (Vertex v) 1
 
 testEdge6969 =  [ Edge (Vertex u) (Vertex v) 1
     | (u, v) <-
-        [ ("1", "2") , ("2" , "3") , ("3" ,"3")]]
+        [ ("1", "2") , ("2" , "3")]]
 
 testCycleEdge = [ Edge (Vertex u) (Vertex v) 1
     | (u, v) <-
@@ -59,7 +59,7 @@ undirectedManip = do
     UDG.addEdges testEdge
     UDG.updateAdjList
     -- UDGAlgo.getConnectedComponents
-    UDGAlgo.bfs (Vertex "1")
+    -- UDGAlgo.bfs (Vertex "1")
     -- UDGAlgo.cycleDetection
 
 run2 = runState undirectedManip (UDG $ Graph [] [] [])

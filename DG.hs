@@ -28,10 +28,10 @@ updateAdjList = State $
             Graph
                 (vertexList graph)
                 (edgeList graph)
-                [(u, allAdj (edgeList graph) u) | u <- vertexList graph]
+                [(u, map fst $ allAdj (edgeList graph) u) | u <- vertexList graph]
         )
 
-allAdj :: [Edge] -> Vertex -> [(Vertex , Int)]
+allAdj :: [Edge] -> Vertex -> [(Vertex , Integer)]
 allAdj edgeList v = aux edgeList []
   where
     aux [] res = res
@@ -40,73 +40,31 @@ allAdj edgeList v = aux edgeList []
         | otherwise = aux ls res
 
 containsVertex :: Vertex -> State DirectedGraph Bool
-containsVertex u = State $ \(DG graph) -> (u `elem` vertexList graph, DG graph)
+containsVertex u = State $ \(DG graph) -> (Graph.containsVertex u graph, DG graph)
 
 addVertex :: Vertex -> State DirectedGraph ()
-addVertex newVertex = State $ \graph -> runState manip graph
-  where
-    manip = do
-        contain <- containsVertex newVertex
-        if not contain
-            then State $
-                \(DG graph) ->
-                    ((), DG $ Graph (newVertex : vertexList graph) (edgeList graph) [])
-            else State $ \graph -> ((), graph)
+addVertex newVertex = State $ \(DG graph) -> (() , DG $ Graph.addVertex newVertex graph)
 
 addVertices :: [Vertex] -> State DirectedGraph ()
-addVertices [] = State $ \graph -> ((), graph)
-addVertices (v : vs) = State $ \graph -> runState manip graph
-  where
-    manip = do
-        addVertex v
-        addVertices vs
-
-addVerticesFold :: [Vertex] -> State DirectedGraph ()
-addVerticesFold vs = State $
-    \graph -> foldl (\g v -> runState (addVertex v) (snd g)) ((), graph) vs
-
-addVerticesFoldM :: [Vertex] -> State DirectedGraph ()
-addVerticesFoldM = foldM (\_ v -> addVertex v) ()
+addVertices vs = State $ \(DG graph) -> (() , DG $ Graph.addVertices vs graph)
 
 removeVertex :: Vertex -> State DirectedGraph ()
-removeVertex vertex = State $
-    \(DG graph) ->
-        ( ()
-        , DG $
-            Graph
-                (filter (/= vertex) (vertexList graph))
-                ( filter
-                    (\edge -> not (getU edge == vertex || getV edge == vertex))
-                    (edgeList graph)
-                )
-                []
-        )
+removeVertex vertex = State $ \(DG graph) -> (() , DG $ Graph.removeVertex vertex graph)
 
 containsEdge :: Edge -> State DirectedGraph Bool
-containsEdge e = State $ \(DG graph) -> (DE e `elem` map DE (edgeList graph), DG graph)
+containsEdge e = State $ \(DG graph) -> (Graph.containsEdge e graph DE, DG graph)
 
 addEdge :: Edge -> State DirectedGraph ()
-addEdge newEdge = State $ \graph -> runState manip graph
-  where
-    manip = do
-        containEdge <- containsEdge newEdge
-        if not containEdge
-            then State $ \(DG graph) -> ((), DG $ Graph (vertexList graph) (newEdge : edgeList graph) [])
-            else State $ \graph -> ((), graph)
+addEdge newEdge = State $ \(DG graph) -> (() , DG $ Graph.addEdge newEdge graph DE)
 
 addEdges :: [Edge] -> State DirectedGraph ()
-addEdges [] = State $ \graph -> ((), graph)
-addEdges (e : es) = State $ \graph -> runState manip graph
-  where
-    manip = do
-        addEdge e
-        addEdges es
+addEdges es = State $ \(DG graph) -> ((), DG $ Graph.addEdges es graph DE)
 
-addEdgesFold :: [Edge] -> State DirectedGraph ()
-addEdgesFold es = State $ \graph -> foldl (\g e -> runState (addEdge e) (snd g)) ((), graph) es
+-- addEdgesFold :: [Edge] -> State DirectedGraph ()
+-- addEdgesFold es = State $ \graph -> foldl (\g e -> runState (addEdge e) (snd g)) ((), graph) es
 
-addEdgesFoldM :: [Edge] -> State DirectedGraph ()
-addEdgesFoldM = foldM (\_ e -> addEdge e) ()
+-- addEdgesFoldM :: [Edge] -> State DirectedGraph ()
+-- addEdgesFoldM = foldM (\_ e -> addEdge e) ()
 
 removeEdge :: Edge -> State DirectedGraph ()
-removeEdge edge = State $ \(DG graph) -> ((), DG $ Graph (vertexList graph) (filter ((/= DE edge) . DE) (edgeList graph)) [])
+removeEdge edge = State $ \(DG graph) -> ((), DG $ Graph.removeEdge edge graph DE)
