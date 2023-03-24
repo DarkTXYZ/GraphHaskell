@@ -53,3 +53,9 @@ bfsTraverse adjListGraph visited (q:qs) = bfsTraverse adjListGraph (visited ++ n
      notVisitedAdjU = filter(\x -> x `notElem` visited) adjU
      newQ = qs ++ notVisitedAdjU
 
+allInfinite:: Vertex -> [(Vertex,Int)]
+allInfinite s = [(u, if(u == s) then 0 else 1000000)|  u <- vertexList graph ]
+
+
+-- spt allinfinte, vertexList -> [vertex,(prev,distance if from prev)]
+spt::[(Vertex,Int)] -> [Vertex] -> [(Vertex,(Vertex,Int))]
