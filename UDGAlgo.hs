@@ -102,3 +102,29 @@ mstUtil graph = UDG $ foldl (
      newGraph = Graph (vertexList graph) [] []
      sortEdgeList = sortBy compare (edgeList graph)
      compare e1 e2 | getW e1 < getW e2 = LT | getW e1 == getW e2 = EQ | getW e1 > getW e2 = GT
+
+allInfinite:: Vertex -> Graph -> [(Vertex,Integer)]
+allInfinite src graph = [(u, if(u == src) then 0 else 1000000)|  u <- vertexList graph ]
+
+updateDist :: [(Vertex , Integer)] -> Vertex -> Integer -> [(Vertex , Integer)]
+updateDist dist v w = map (\(vertex , d) -> if (vertex == v) then (v , w) else (vertex , d)) dist
+
+spt :: AdjList -> [(Vertex,Integer)] -> [(Vertex,Integer)] -> [(Vertex,Integer)] 
+spt _ dist [] =  dist
+spt adjListGraph dist (q:qs) = spt adjListGraph newDist newQ
+    where 
+        u = fst q
+        vs = concatMap snd (filter (\p -> fst p == u) adjListGraph)
+        (newDist, newQ) = foldl (\(cur_dist , cur_q) (vv , w) -> 
+            let 
+                dist_u = snd $ head $ filter ((== u).fst) dist
+                dist_vv = snd $ head $ filter ((== vv).fst) dist
+            in
+                if (dist_vv > dist_u + w) then
+                    (updateDist cur_dist vv (dist_u + w) , cur_q ++ [(vv , dist_u + w)])
+                else
+                    (cur_dist , cur_q)
+            ) (dist , qs) vs
+
+shortestPath :: Vertex -> State UndirectedGraph [(Vertex , Integer)]
+shortestPath u = State $ \(UDG graph) -> (spt (adjList graph) (allInfinite u graph) [(u , 0)], UDG graph)
