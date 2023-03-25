@@ -69,7 +69,7 @@ testTopo = [ Edge (Vertex u) (Vertex v) 1
 
 
 testDGStpEdge =
-    [ Edge (Vertex u) (Vertex v) (w)
+    [ Edge (Vertex u) (Vertex v) w
     | (u, v, w) <-
         [ ("1", "2" , 3)
         , ("1", "4" , 6)
@@ -84,7 +84,7 @@ testDGStpEdge =
     ]
 
 testMstEdge =
-    [ Edge (Vertex u) (Vertex v) (w)
+    [ Edge (Vertex u) (Vertex v) w
     | (u, v, w) <-
         [ ("1", "2" , 9)
         , ("1", "6" , 8)

@@ -1,9 +1,12 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Use sort" #-}
 module UDGAlgo where
 
+import Data.List
 import Graph
 import State
 import UDG
-import Data.List
 
 dfs :: Vertex -> State UndirectedGraph [Vertex]
 dfs u = State $ \(UDG graph) -> (reverse $ dfsTraverse (adjList graph) [] u, UDG graph)
@@ -56,7 +59,7 @@ cycleUtil g =
             )
             ([], False)
             (vertexList g)
-            
+
 getConnectedComponents :: State UndirectedGraph [[Vertex]]
 getConnectedComponents = State $ \(UDG graph) -> (getComponents graph, UDG graph)
 
@@ -79,52 +82,58 @@ getComponents g =
 bfs :: Vertex -> State UndirectedGraph [Vertex]
 bfs u = State $ \(UDG graph) -> (bfsTraverse (adjList graph) [u] [u], UDG graph)
 
-bfsTraverse ::  AdjList -> [Vertex] -> [Vertex] ->  [Vertex]
-bfsTraverse _ visited [] =  visited
-bfsTraverse adjListGraph visited (q:qs) = bfsTraverse adjListGraph (visited ++ notVisitedAdjU) newQ
-    where 
-        adjU = concatMap snd (filter (\p -> fst p == q) adjListGraph)
-        notVisitedAdjU = map fst $ filter(\x -> fst x `notElem` visited) adjU
-        newQ = qs ++ notVisitedAdjU
+bfsTraverse :: AdjList -> [Vertex] -> [Vertex] -> [Vertex]
+bfsTraverse _ visited [] = visited
+bfsTraverse adjListGraph visited (q : qs) = bfsTraverse adjListGraph (visited ++ notVisitedAdjU) newQ
+  where
+    adjU = concatMap snd (filter (\p -> fst p == q) adjListGraph)
+    notVisitedAdjU = map fst $ filter (\x -> fst x `notElem` visited) adjU
+    newQ = qs ++ notVisitedAdjU
 
 ms :: State UndirectedGraph UndirectedGraph
-ms = State $ \(UDG graph) -> (mstUtil graph , UDG graph)
+ms = State $ \(UDG graph) -> (mstUtil graph, UDG graph)
 
 mstUtil :: Graph -> UndirectedGraph
-mstUtil graph = UDG $ foldl (
-    \acc e -> 
-        if (UDGAlgo.cycleUtil) $ (UDG.updateAdj) $ (UDG $ (Graph.addEdge e acc UDE) )
-            then acc
-            else (UDG.updateAdj) $ (UDG $ (Graph.addEdge e acc UDE) ) )
-        newGraph 
-        (sortEdgeList)
- where
-     newGraph = Graph (vertexList graph) [] []
-     sortEdgeList = sortBy compare (edgeList graph)
-     compare e1 e2 | getW e1 < getW e2 = LT | getW e1 == getW e2 = EQ | getW e1 > getW e2 = GT
+mstUtil graph =
+    UDG $
+        foldl
+            ( \acc e ->
+                if UDGAlgo.cycleUtil $ UDG.updateAdj (UDG (Graph.addEdge e acc UDE))
+                    then acc
+                    else UDG.updateAdj (UDG (Graph.addEdge e acc UDE))
+            )
+            newGraph
+            sortEdgeList
+  where
+    newGraph = Graph (vertexList graph) [] []
+    sortEdgeList = sortBy compare (edgeList graph)
+    compare e1 e2 | getW e1 < getW e2 = LT | getW e1 == getW e2 = EQ | getW e1 > getW e2 = GT
 
-allInfinite:: Vertex -> Graph -> [(Vertex,Integer)]
-allInfinite src graph = [(u, if(u == src) then 0 else 1000000)|  u <- vertexList graph ]
+allInfinite :: Vertex -> Graph -> [(Vertex, Integer)]
+allInfinite src graph = [(u, if u == src then 0 else 1000000) | u <- vertexList graph]
 
-updateDist :: [(Vertex , Integer)] -> Vertex -> Integer -> [(Vertex , Integer)]
-updateDist dist v w = map (\(vertex , d) -> if (vertex == v) then (v , w) else (vertex , d)) dist
+updateDist :: [(Vertex, Integer)] -> Vertex -> Integer -> [(Vertex, Integer)]
+updateDist dist v w = map (\(vertex, d) -> if vertex == v then (v, w) else (vertex, d)) dist
 
-spt :: AdjList -> [(Vertex,Integer)] -> [(Vertex,Integer)] -> [(Vertex,Integer)] 
-spt _ dist [] =  dist
-spt adjListGraph dist (q:qs) = spt adjListGraph newDist newQ
-    where 
-        u = fst q
-        vs = concatMap snd (filter (\p -> fst p == u) adjListGraph)
-        (newDist, newQ) = foldl (\(cur_dist , cur_q) (vv , w) -> 
-            let 
-                dist_u = snd $ head $ filter ((== u).fst) dist
-                dist_vv = snd $ head $ filter ((== vv).fst) dist
-            in
-                if (dist_vv > dist_u + w) then
-                    (updateDist cur_dist vv (dist_u + w) , cur_q ++ [(vv , dist_u + w)])
-                else
-                    (cur_dist , cur_q)
-            ) (dist , qs) vs
+spt :: AdjList -> [(Vertex, Integer)] -> [(Vertex, Integer)] -> [(Vertex, Integer)]
+spt _ dist [] = dist
+spt adjListGraph dist (q : qs) = spt adjListGraph newDist newQ
+  where
+    u = fst q
+    vs = concatMap snd (filter (\p -> fst p == u) adjListGraph)
+    (newDist, newQ) =
+        foldl
+            ( \(cur_dist, cur_q) (vv, w) ->
+                let
+                    dist_u = snd $ head $ filter ((== u) . fst) dist
+                    dist_vv = snd $ head $ filter ((== vv) . fst) dist
+                 in
+                    if dist_vv > dist_u + w
+                        then (updateDist cur_dist vv (dist_u + w), cur_q ++ [(vv, dist_u + w)])
+                        else (cur_dist, cur_q)
+            )
+            (dist, qs)
+            vs
 
-shortestPath :: Vertex -> State UndirectedGraph [(Vertex , Integer)]
-shortestPath u = State $ \(UDG graph) -> (spt (adjList graph) (allInfinite u graph) [(u , 0)], UDG graph)
+shortestPath :: Vertex -> State UndirectedGraph [(Vertex, Integer)]
+shortestPath u = State $ \(UDG graph) -> (spt (adjList graph) (allInfinite u graph) [(u, 0)], UDG graph)
