@@ -6,6 +6,51 @@ import UDGAlgo
 import DGAlgo
 
 testVertex = [Vertex (show v) | v <- [1, 2 .. 7]]
+
+testEdge =
+    [ Edge (Vertex u) (Vertex v) 1
+    | (u, v) <-
+        [ ("1", "2")
+        , ("1", "4")
+        , ("1", "5")
+        , ("2", "3")
+        , ("2", "4")
+        , ("3", "5")
+        , ("3", "6")
+        , ("3", "7")
+        , ("4", "6")
+        , ("5", "2")
+        , ("7", "4")
+        ]
+    ]
+
+testCycleEdge = [ Edge (Vertex u) (Vertex v) 1
+    | (u, v) <-
+        [ ("1", "2")
+        , ("1", "4")
+        , ("1", "5")
+        , ("2", "3")
+        , ("2", "5")
+        , ("3", "4")
+        , ("3", "6")
+        , ("4", "2")
+        , ("4", "6")
+        , ("5", "3")
+        , ("5", "4")
+        ]
+    ]
+
+testConnectedComponent = [ Edge (Vertex u) (Vertex v) 1
+    | (u, v) <-
+        [ ("1", "2")
+        , ("2", "3")
+        , ("2", "4")
+        , ("3", "4")
+        , ("5", "6")
+        , ("6", "7")
+        ]
+    ]
+
 testTopo = [ Edge (Vertex u) (Vertex v) 1
     | (u, v) <-
         [ ("1", "2")
@@ -22,42 +67,8 @@ testTopo = [ Edge (Vertex u) (Vertex v) 1
         ]
     ]
 
-testEdge =
-    [ Edge (Vertex u) (Vertex v) 1
-    | (u, v) <-
-        [ ("1", "2")
-        , ("1", "4")
-        , ("2", "3")
-        , ("3", "5")
-        , ("4", "2")
-        , ("4", "6")
-        -- , ("3" , "4")
-        ]
-    ]
-testEdge69 =  [ Edge (Vertex u) (Vertex v) 1
-    | (u, v) <-
-        [ ("1", "2")
-        , ("2", "3")
-        , ("3", "4")
-        -- , ("4", "1")
-        ]
-    ]
 
-testEdge6969 =  [ Edge (Vertex u) (Vertex v) 1
-    | (u, v) <-
-        [ ("1", "2") , ("2" , "3")]]
-
-testCycleEdge = [ Edge (Vertex u) (Vertex v) 1
-    | (u, v) <-
-        [ ("1", "2")
-        , ("1", "3")
-        , ("4", "5")
-        , ("4", "6")
-        , ("5", "6")
-        ]
-    ]
-
-testStpEdge =
+testDGStpEdge =
     [ Edge (Vertex u) (Vertex v) (w)
     | (u, v, w) <-
         [ ("1", "2" , 3)
@@ -69,7 +80,6 @@ testStpEdge =
         , ("4", "3" , 8)
         , ("4", "5" , 4)
         , ("5", "3" , 2)
-        -- , ("3" , "4")
         ]
     ]
 
@@ -89,30 +99,37 @@ testMstEdge =
         ]
     ]
 
-
--- testEdge2 = [Edge (Vertex $ show u) (Vertex $ show v) | u <- [1,2] , v <- [3,4,5,6]]
-
-directedManip = do
+dgManip = do
     DG.addVertices testVertex
-    DG.addEdges testTopo
-    DG.updateAdjList
-    -- DGAlgo.ms
-    -- DGAlgo.topoSort
-    -- DGAlgo.shortestPath (Vertex "1") 
-    -- getConnectedComponents
-    -- dfs (Vertex "1")
-    DGAlgo.cycleDetection
+
+    -- DG.addEdges testEdge
+    -- DG.updateAdjList
+    -- DGAlgo.dfs (Vertex "1")
     -- DGAlgo.bfs (Vertex "1")
 
-run = runState directedManip (DG $ Graph [] [] [])
+    -- DG.addEdges testCycleEdge
+    -- DG.updateAdjList
+    -- DGAlgo.cycleDetection
 
-undirectedManip = do
+    -- DG.addEdges testDGStpEdge
+    -- DG.updateAdjList
+    -- DGAlgo.shortestPath (Vertex "1") 
+
+    -- DG.addEdges testTopo
+    -- DG.updateAdjList
+    -- DGAlgo.topoSort
+
+runDG = runState dgManip (DG $ Graph [] [] [])
+
+udgManip = do
     UDG.addVertices testVertex
-    UDG.addEdges testMstEdge
-    UDG.updateAdjList
-    UDGAlgo.ms
-    -- UDGAlgo.getConnectedComponents
-    -- UDGAlgo.bfs (Vertex "1")
-    -- UDGAlgo.cycleDetection
 
-run2 = runState undirectedManip (UDG $ Graph [] [] [])
+    -- UDG.addEdges testConnectedComponent
+    -- UDG.updateAdjList
+    -- UDGAlgo.getConnectedComponents
+
+    -- UDG.addEdges testMstEdge
+    -- UDG.updateAdjList
+    -- UDGAlgo.ms
+
+runUDG = runState udgManip (UDG $ Graph [] [] [])
