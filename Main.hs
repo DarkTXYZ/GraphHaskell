@@ -121,8 +121,6 @@ dgManip = do
     -- DG.updateAdjList
     -- DGAlgo.shortestPath (Vertex "1") 
 
-
-
 runDG = runState dgManip (DG $ Graph [] [] [])
 
 udgManip = do
