@@ -64,11 +64,5 @@ addEdge newEdge = State $ \(DG graph) -> ((), DG $ Graph.addEdge newEdge graph D
 addEdges :: [Edge] -> State DirectedGraph ()
 addEdges es = State $ \(DG graph) -> ((), DG $ Graph.addEdges es graph DE)
 
--- addEdgesFold :: [Edge] -> State DirectedGraph ()
--- addEdgesFold es = State $ \graph -> foldl (\g e -> runState (addEdge e) (snd g)) ((), graph) es
-
--- addEdgesFoldM :: [Edge] -> State DirectedGraph ()
--- addEdgesFoldM = foldM (\_ e -> addEdge e) ()
-
 removeEdge :: Edge -> State DirectedGraph ()
 removeEdge edge = State $ \(DG graph) -> ((), DG $ Graph.removeEdge edge graph DE)

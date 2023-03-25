@@ -4,7 +4,6 @@
 
 module Graph where
 
--- Vertex
 data Vertex = Vertex {label :: String}
 
 instance Show Vertex where
@@ -13,7 +12,6 @@ instance Show Vertex where
 instance Eq Vertex where
     u == v = label u == label v
 
--- Edge
 data Edge = Edge
     { getU :: Vertex
     , getV :: Vertex
@@ -54,13 +52,6 @@ addVertex newVertex graph
 addVertices :: [Vertex] -> Graph -> Graph
 addVertices vs graph = foldl (flip addVertex) graph vs
 
--- addVerticesFold :: [Vertex] -> State UndirectedGraph ()
--- addVerticesFold vs = State $
---     \graph -> foldl (\g v -> runState (addVertex v) (snd g)) ((), graph) vs
-
--- addVerticesFoldM :: [Vertex] -> State UndirectedGraph ()
--- addVerticesFoldM = foldM (\_ v -> addVertex v) ()
-
 removeVertex :: Vertex -> Graph -> Graph
 removeVertex vertex graph =
     Graph
@@ -82,12 +73,6 @@ addEdge newEdge graph edgeType
 addEdges :: Eq a => [Edge] -> Graph -> (Edge -> a) -> Graph
 addEdges [] graph _ = graph
 addEdges (e : es) graph edgeType = addEdges es (addEdge e graph edgeType) edgeType
-
--- addEdgesFold :: [Edge] -> State UndirectedGraph ()
--- addEdgesFold es = State $ \graph -> foldl (\g e -> runState (addEdge e) (snd g)) ((), graph) es
-
--- addEdgesFoldM :: [Edge] -> State UndirectedGraph ()
--- addEdgesFoldM = foldM (\_ e -> addEdge e) ()
 
 removeEdge :: Eq a => Edge -> Graph -> (Edge -> a) -> Graph
 removeEdge edge graph edgeType = Graph (vertexList graph) (filter ((/= edgeType edge) . edgeType) (edgeList graph)) (adjList graph)

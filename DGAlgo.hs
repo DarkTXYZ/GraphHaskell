@@ -5,8 +5,6 @@ import Data.List
 import Graph
 import State
 
--- adjlist,visited,q->[order]
-
 dfs :: Vertex -> State DirectedGraph [Vertex]
 dfs u = State $ \(DG graph) -> (reverse $ dfsTraverse (adjList graph) [] u, DG graph)
 
@@ -68,8 +66,6 @@ bfsTraverse adjListGraph visited (q : qs) = bfsTraverse adjListGraph (visited ++
 
 allInfinite :: Vertex -> Graph -> [(Vertex, Integer)]
 allInfinite src graph = [(u, if u == src then 0 else 1000000) | u <- vertexList graph]
-
--- spt allinfinte, vertexList -> [vertex,(prev,distance if from prev)]
 
 spt :: AdjList -> [(Vertex, Integer)] -> [(Vertex, Integer)] -> [(Vertex, Integer)]
 spt _ dist [] = dist

@@ -45,7 +45,6 @@ updateAdj (UDG graph) =
                 (edgeList graph)
                 [(u, allAdj (edgeList graph) u) | u <- vertexList graph]
 
--- Adjacency List representation
 allAdj :: [Edge] -> Vertex -> [(Vertex , Integer)]
 allAdj edgeList v = aux edgeList []
   where
@@ -75,12 +74,6 @@ addEdge newEdge = State $ \(UDG graph) -> (() , UDG $ Graph.addEdge newEdge grap
 
 addEdges :: [Edge] -> State UndirectedGraph ()
 addEdges es = State $ \(UDG graph) -> ((), UDG $ Graph.addEdges es graph UDE)
-
--- addEdgesFold :: [Edge] -> State UndirectedGraph ()
--- addEdgesFold es = State $ \graph -> foldl (\g e -> runState (addEdge e) (snd g)) ((), graph) es
-
--- addEdgesFoldM :: [Edge] -> State UndirectedGraph ()
--- addEdgesFoldM = foldM (\_ e -> addEdge e) ()
 
 removeEdge :: Edge -> State UndirectedGraph ()
 removeEdge edge = State $ \(UDG graph) -> ((), UDG $ Graph.removeEdge edge graph UDE)

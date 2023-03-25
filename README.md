@@ -6,7 +6,7 @@ Graph representation and algorithm implementation for educational purpose
 - Adjacency List
   - Update Adjacency List Graph
 ## Graph Construction
-- Add/Reomve Vertex(s)
+- Add/Remove Vertex(s)
 - Add/Remove Edge(s)
 ## Graph Properties
 - Contain Vertex

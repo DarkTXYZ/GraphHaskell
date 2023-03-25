@@ -63,6 +63,7 @@ testTopo = [ Edge (Vertex u) (Vertex v) 1
         , ("4", "5")
         , ("4", "7")
         , ("6", "5")
+        , ("7", "5")
         , ("7", "6")
         ]
     ]
@@ -79,6 +80,7 @@ testDGStpEdge =
         , ("4", "2" , 5)
         , ("4", "3" , 8)
         , ("4", "5" , 4)
+        , ("5", "1" , 7)
         , ("5", "3" , 2)
         ]
     ]
@@ -102,22 +104,24 @@ testMstEdge =
 dgManip = do
     DG.addVertices testVertex
 
+    -- DG.addEdges testCycleEdge
+    -- DG.updateAdjList
+    -- DGAlgo.cycleDetection
+
     -- DG.addEdges testEdge
     -- DG.updateAdjList
     -- DGAlgo.dfs (Vertex "1")
     -- DGAlgo.bfs (Vertex "1")
 
-    -- DG.addEdges testCycleEdge
+    -- DG.addEdges testTopo
     -- DG.updateAdjList
-    -- DGAlgo.cycleDetection
+    -- DGAlgo.topoSort
 
     -- DG.addEdges testDGStpEdge
     -- DG.updateAdjList
     -- DGAlgo.shortestPath (Vertex "1") 
 
-    -- DG.addEdges testTopo
-    -- DG.updateAdjList
-    -- DGAlgo.topoSort
+
 
 runDG = runState dgManip (DG $ Graph [] [] [])
 
